@@ -53,6 +53,7 @@ Private Sub Init()
   SetDataHidden
 
   ResetVisioData
+  ResetGeometry
 End Sub
 
 ' Remove sections from the shapesheet
@@ -213,16 +214,18 @@ Private Sub SetDataHidden()
 End Sub
 
 ' Reset the Visio Shape Data
-Public Sub ResetVisioData()
+Public Sub ResetVisioData(Optional s as Shape = Nothing)
+  if Not s is Nothing then set shp = s
+
   ' only available in 1D shapes
   if shp.CellExists("EndY", visExistsLocally) <> False then
-    shp.Cells("EndY").FormulaForceU = "Guard(BeginY)"
-    shp.Cells("Width").Formula = "EndX-EndY"
+    shp.Cells("EndY").FormulaForce = "Guard(BeginY)"
+    shp.Cells("Width").FormulaForce = "Guard(EndX-BeginX)"
   end if
 
   shp.Cells("Height").Formula = "BlockSizeY"
-  shp.Cells("PinX").Formula = "BeginX"
-  shp.Cells("PinY").Formula = "BeginY"
+  shp.Cells("PinX").FormulaForce = "Guard(BeginX)"
+  shp.Cells("PinY").Formula = "Guard(BeginY)"
   shp.Cells("LocPinX").Formula = 0
   shp.Cells("LocPinY").Formula = "If(FlipY,Height*1,Height*0)"
   if sType = SignalType.Bus then
@@ -241,4 +244,60 @@ Public Sub ResetVisioData()
   shp.Cells("TxtWidth").Formula = "LEN(SHAPETEXT(TheText))*Char.Size"
   shp.Cells("FillForegndTrans").Formula = 1
   shp.Cells("Geometry1.NoFill").Formula = False
+End Sub
+
+Public Sub ResetGeometry(Optional s as Shape = Nothing)
+  if Not s is Nothing then set shp = s
+
+  shp.DeleteSection visSectionConnectionPts
+
+  For i = 0 to shp.RowCount(visSectionScratch) - 1
+    For Each s In shp.ContainingPage.Shapes
+      If s.Name = shp.CellsSRC(visSectionScratch, i, VW_COL_LABEL_NAME).ResultStr("") Then s.Delete
+    Next
+  Next i
+
+  shp.DeleteScratch visSectionScratch
+
+  Do While shp.GeometryCount > 1
+    shp.DeleteSection visSectionFirstComponent + 1
+  Loop
+
+  Do While shp.RowCount(visSectionFirstCompont) > 3
+    ' delete row 2 to keep X1=0 and X2=Width
+    shp.DeleteRow visSectionFirstComponent, visRowComponent + 2
+  Loop
+End Sub
+
+Private Sub AddGeometry(Optional Section as Integer = -1, Optional NoShow as Variant = False, _
+                        Optional NoFill, Optional NoLine, Optional NoSnap as Boolean = False)
+  If Section < 0 then
+    Section = shp.AddSection(visSectionFirstComponent + shp.GeometryCount)
+    shp.AddRow Section, visRowComponent, visTagComponent
+  End If
+  shp.CellsSRC(Section, visRowComponent, visNoFill + 0).Formula = NoFill
+  shp.CellsSRC(Section, visRowComponent, visNoFill + 1).Formula = NoLine
+  shp.CellsSRC(Section, visRowComponent, visNoFill + 1).Formula = NoShow
+  shp.CellsSRC(Section, visRowComponent, visNoFill + 1).Formula = NoSnap
+End Sub
+
+Private Sub StartGeometry()
+  shp.CellsSRC(visSectionFirstComponent, visRowComponent, visNoFill + 0).Formula = False
+  shp.CellsSRC(visSectionFirstComponent, visRowComponent, visNoFill + 1).Formula = False
+  shp.CellsSRC(visSectionFirstComponent, visRowComponent, visNoFill + 1).Formula = False
+  shp.CellsSRC(visSectionFirstComponent, visRowComponent, visNoFill + 1).Formula = False
+  if sType = SignalType.Bus Then
+    shp.AddSection visSectionFirstComponent + 1
+    shp.AddRow visSectionFirstComponent + 1, visRowComponent, visTagComponent
+    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent, visNoFill + 0).Formula = True
+    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent, visNoFill + 1).Formula = False
+    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent, visNoFill + 1).Formula = False
+    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent, visNoFill + 1).Formula = False
+    shp.AddRow visSectionFirstComponent + 1, visRowComponent + 1, visTagMoveTo
+    shp.AddRow visSectionFirstComponent + 1, visRowComponent + 2, visTagLineTo
+    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent + 1, visX).Formula = "Geometry1.X1"
+    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent + 1, visY).Formula = "Height-Geometry1.Y1"
+    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent + 2, visX).Formula = "Geometry1.X2"
+    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent + 2, visY).Formula = "Height-Geometry1.Y2"
+  end if
 End Sub

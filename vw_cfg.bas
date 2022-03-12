@@ -5,7 +5,12 @@ Public Const VW_0IN as string = "0 in"
 Public VW_WIDTH as double
 Public VW_HEIGHT as double
 Public VW_TYPE_STR(0 to 2) as string
+
 Public Const VW_BUS_YANCHOR as Integer = visAlignBottom
+'Public Const VW_BUS_YANCHOR as Integer = visAlignMiddle
+'Public Const VW_BUS_YANCHOR as Integer = visAlignTop
+
+Public Const VW_COL_LABEL_NAME as Integer = visScratchB
 
 Public Sub Configure()
     VW_WIDTH = 3
