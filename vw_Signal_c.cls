@@ -246,6 +246,7 @@ Public Sub ResetVisioData(Optional s as Shape = Nothing)
   shp.Cells("Geometry1.NoFill").Formula = False
 End Sub
 
+' Reset the shape geometry
 Public Sub ResetGeometry(Optional s as Shape = Nothing)
   if Not s is Nothing then set shp = s
 
@@ -257,7 +258,7 @@ Public Sub ResetGeometry(Optional s as Shape = Nothing)
     Next
   Next i
 
-  shp.DeleteScratch visSectionScratch
+  shp.DeleteSection visSectionScratch
 
   Do While shp.GeometryCount > 1
     shp.DeleteSection visSectionFirstComponent + 1
@@ -267,10 +268,18 @@ Public Sub ResetGeometry(Optional s as Shape = Nothing)
     ' delete row 2 to keep X1=0 and X2=Width
     shp.DeleteRow visSectionFirstComponent, visRowComponent + 2
   Loop
+
+  ' specifiying the section will prevent it from being added
+  AddGeometry Section:=visSectionFirstComponent
+  if sType = SignalType.Bus Then AddGeometry NoFill:=True
+
+  SetRowXY "Width*0", 0, visRowComponent + 1, visSectionFirstComponent + 1, visTagMoveTo
+  SetRowXY "Width*1", 0, visRowComponent + 2, visSectionFirstComponent + 1, visTagLineTo
 End Sub
 
 Private Sub AddGeometry(Optional Section as Integer = -1, Optional NoShow as Variant = False, _
-                        Optional NoFill, Optional NoLine, Optional NoSnap as Boolean = False)
+                        Optional NoFill as Boolean = False, Optional NoLine as Boolean = False, _
+                        Optional NoSnap as Boolean = False)
   If Section < 0 then
     Section = shp.AddSection(visSectionFirstComponent + shp.GeometryCount)
     shp.AddRow Section, visRowComponent, visTagComponent
@@ -281,23 +290,36 @@ Private Sub AddGeometry(Optional Section as Integer = -1, Optional NoShow as Var
   shp.CellsSRC(Section, visRowComponent, visNoFill + 1).Formula = NoSnap
 End Sub
 
-Private Sub StartGeometry()
-  shp.CellsSRC(visSectionFirstComponent, visRowComponent, visNoFill + 0).Formula = False
-  shp.CellsSRC(visSectionFirstComponent, visRowComponent, visNoFill + 1).Formula = False
-  shp.CellsSRC(visSectionFirstComponent, visRowComponent, visNoFill + 1).Formula = False
-  shp.CellsSRC(visSectionFirstComponent, visRowComponent, visNoFill + 1).Formula = False
-  if sType = SignalType.Bus Then
-    shp.AddSection visSectionFirstComponent + 1
-    shp.AddRow visSectionFirstComponent + 1, visRowComponent, visTagComponent
-    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent, visNoFill + 0).Formula = True
-    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent, visNoFill + 1).Formula = False
-    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent, visNoFill + 1).Formula = False
-    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent, visNoFill + 1).Formula = False
-    shp.AddRow visSectionFirstComponent + 1, visRowComponent + 1, visTagMoveTo
-    shp.AddRow visSectionFirstComponent + 1, visRowComponent + 2, visTagLineTo
-    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent + 1, visX).Formula = "Geometry1.X1"
-    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent + 1, visY).Formula = "Height-Geometry1.Y1"
-    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent + 2, visX).Formula = "Geometry1.X2"
-    shp.CellsSRC(visSectionFirstComponent + 1, visRowComponent + 2, visY).Formula = "Height-Geometry1.Y2"
-  end if
+Private Sub SetRowXY(x as Variant, y as Variant, Row as Integer, _
+                     Optional Section as Integer = visSectionFirstComponent, _
+                     Optional Tag As Integer = visTagDefault)
+  Dim xCell, yCell as Cell
+
+  If shp.RowExists(Section, Row, visExistsLocally) = false then _
+    shp.AddRow Section, Row, Tag
+
+  Set xCell = shp.CellsSRC(Section, Row, visX)
+  Set yCell = shp.CellsSRC(Section, Row, visY)
+
+  xCell.Formula = x
+  yCell.Formula = y
+
+  If Section = visSectionFirstComponent Then
+    If sType = SignalType.Clock or sType = SignalType.Bit Then
+      SetRowXY xCell.Name, yCell.Name, Row - 1, visSectionConnectionPts, visTagDefault
+    elseif sType = SignalType.Bus Then
+      SetRowXY xCell.Name, "Height-" & yCell.Name, Row, visSectionFirstComponent + 1, Tag
+      Select Case VW_BUS_YANCHOR
+       case visAlignBottom, visAlignTop
+        SetRowXY xCell.Name, yCell.Name, Row - 1, visSectionConnectionPts, visTagDefault
+       case visAlignMiddle
+        ' //TODO connection points needs to be centered properly
+        SetRowXY xCell.Name, "Height*0.5", Row - 1, visSectionConnectionPts, visTagDefault
+      End Select
+    End if
+  ElseIf Section = (visSectionFirstComponent + 1) and sType = SignalType.Bus _
+         and VW_BUS_YANCHOR <> visAlignMiddle Then
+    SetRowXY xCell.Name, yCell.Name, Row - 1, visSectionConnectionPts, visTagDefault
+  End If
+
 End Sub
