@@ -26,7 +26,7 @@ End Sub
 
 ' Create a new signal of the given type on the input page
 Public Sub NewSignal(p as Page, t as SignalType, x1 as double, y1 as double)
-  set shp = p.DrawLine(x1, y1, x1 + vw_cfg.VW_WIDTH, y1)
+  set shp = p.DrawLine(x1, y1, x1 + VW_WIDTH, y1)
   Init
 End Sub
 
@@ -51,6 +51,8 @@ Private Sub Init()
   SetDataTypes
   SetDataFormats
   SetDataHidden
+
+  ResetVisioData
 End Sub
 
 ' Remove sections from the shapesheet
@@ -80,7 +82,7 @@ End Sub
 
 ' Set the User-defined Cells
 Private Sub SetUserCells()
-  shp.Cells("User.Type").Formula = Chr(34) & sType & Chr(34)
+  shp.Cells("User.Type").Formula = VW_TYPE_STR(SignalType.Clock)
   shp.Cells("User.ChildOffset").Formula = "BlockSizeY"
   if sType = SignalType.Bit then
     shp.Cells("User.BusWidth").Formula = 1
@@ -118,7 +120,9 @@ Private Sub AddDataCells()
 End Sub
 
 ' Set the Shape Data Cell Defaults
-Public Sub ResetData()
+Public Sub ResetData(Optional s as Shape = Nothing)
+  if Not s Is Nothing then set shp = s
+
   if sType = SignalType.Clock or sType = SignalType.Bit then
     shp.Cells("Prop.ActiveLow").Formula = False
   end if
@@ -206,4 +210,35 @@ Private Sub SetDataHidden()
   shp.Cells("Prop.Signal.Invisible").Formula = "STRSAME("""", Prop.Clock.Format)"
   shp.Cells("Prop.LabelSize.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges))"
   shp.Cells("Prop.LabelFont.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges))"
+End Sub
+
+' Reset the Visio Shape Data
+Public Sub ResetVisioData()
+  ' only available in 1D shapes
+  if shp.CellExists("EndY", visExistsLocally) <> False then
+    shp.Cells("EndY").FormulaForceU = "Guard(BeginY)"
+    shp.Cells("Width").Formula = "EndX-EndY"
+  end if
+
+  shp.Cells("Height").Formula = "BlockSizeY"
+  shp.Cells("PinX").Formula = "BeginX"
+  shp.Cells("PinY").Formula = "BeginY"
+  shp.Cells("LocPinX").Formula = 0
+  shp.Cells("LocPinY").Formula = "If(FlipY,Height*1,Height*0)"
+  if sType = SignalType.Bus then
+    select case VW_BUS_YANCHOR
+     case visAlignMiddle
+      shp.Cells("LocPinY").Formula = "Height*0.5"
+     case visAlignTop
+      shp.Cells("LocPinY").Formula = "If(FlipY,Height*0,Height*1)"
+    end select
+  end if
+  if sType = SignalType.Bit or sType = SignalType.Clock then
+    shp.Cells("FlipY").Formula = "Prop.ActiveLow"
+  end if
+  shp.Cells("Para.HorzAlign").Formula = visHorzRight
+  shp.Cells("TxtPinX").Formula = "Width*0"
+  shp.Cells("TxtWidth").Formula = "LEN(SHAPETEXT(TheText))*Char.Size"
+  shp.Cells("FillForegndTrans").Formula = 1
+  shp.Cells("Geometry1.NoFill").Formula = False
 End Sub
