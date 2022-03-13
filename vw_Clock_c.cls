@@ -9,14 +9,9 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
 ' Class module to wrap around a Visio Shape to draw clocks
+Private shp as Shape
 
-Public Sub DrawMe(ByRef signal as vw_Signal_c)
-    Dim NextRow as Integer
-    Dim PrevCnt as Integer
-    Dim GeoCnt As Integer
-    Dim lblShp as Shape
-
-    Dim shp as Shape
+Public Sub Start(ByRef signal as vw_Signal_c)
     Dim TestCell as Cell
     Dim Row as Integer
 
@@ -24,10 +19,11 @@ Public Sub DrawMe(ByRef signal as vw_Signal_c)
 
     ' initial delay
     If shp.RowCount(visSectionFirstComponent) < 4 Then
-        shp.AddRow visSectionFirstComponent, 2, visTagLineTo
-        shp.AddRow visSectionFirstComponent, 1, visTagDefault
+        'shp.AddRow visSectionFirstComponent, 2, visTagLineTo
+        'shp.AddRow visSectionConnectionPts, 1, visTagDefault
     End If
-    signal.SetRowXY "Geometry1.X1+Prop.Delay", "Geometry1.Y1", 2, visSectionFirstComponent, visTagLineTo
+    signal.SetRowXY "Geometry1.X1+Prop.Delay", "Geometry1.Y1", 2, visSectionFirstComponent, visTagLineTo, _
+                    Cbool(shp.RowCount(visSectionFirstComponent) < 4)
 
     ' user a test cell to prevent exceeding the shape's width
     Set TestCell = shp.Cells("User.Test")
@@ -41,4 +37,22 @@ Public Sub DrawMe(ByRef signal as vw_Signal_c)
         Row = Row + 1
     Loop
 
+    signal.CleanUp
+
+    'Redraw
+End Sub
+
+Private Sub Redraw()
+    Dim x as Variant
+    Dim y as Variant
+    Dim Row as Integer
+    Row = 3
+
+    For i = 0 to shp.RowCount(visSectionScratch) - 1
+        Select Case shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE)
+         Case VW_EVENT_TYPE_STR(EventType.Edge)
+            x = shp.CellsSRC(visSectionScratch, i, visX).Name & "+Prop.SkewWidth"
+            y = shp.CellsSRC(visSectionScratch, i, visX).Formula
+        End Select
+    Next i
 End Sub

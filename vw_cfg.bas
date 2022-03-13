@@ -14,6 +14,8 @@ Public Const VW_BUS_YANCHOR as Integer = visAlignBottom
 
 Public Const VW_COL_EVENT_TYPE as Integer = visScratchA
 Public Const VW_COL_LABEL_NAME as Integer = visScratchB
+Public Const VW_COL_NODE_NAME as Integer = visScratchC
+Public Const VW_COL_EVENT_SHOW as Integer = visScratchD
 
 Public Sub Configure()
     VW_WIDTH = 3
