@@ -10,6 +10,6 @@ Public Enum EventType
     Edge = 0
     Pull = 1
     GateX = 2
-    GateY = 4
+    GateZ = 4
 End Enum
     
