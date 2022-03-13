@@ -8,8 +8,9 @@ End Enum
 
 Public Enum EventType
     Edge = 0
-    Pull = 1
-    GateX = 2
-    GateZ = 4
+    Gate0 = 1
+    Gate1 = 2
+    GateX = 4
+    GateZ = 8
 End Enum
     

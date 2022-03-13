@@ -65,3 +65,23 @@ Private Sub Redraw(Init as Boolean)
         End Select
     Next i
 End Sub
+
+Public Sub CellChanged(vsoCell as IVCell)
+    If shp is Nothing Then Set shp = vsoCell.Shape
+    If signal is Nothing Then
+        Set signal = New vw_Signal_c
+        signal.Register shp, SignalType.Clock
+    End If
+
+    Select Case vsoCell.Name
+     Case "Width"
+        signal.CleanUp
+     Case "Prop.Period"
+     Case "Prop.Delay"
+     Case "Prop.Skew"
+     Case "Prop.DutyCycle"
+     Case "Prop.Trigger"
+     Case "Prop.Events"
+     Case "Prop.LabelEdges"
+    End Select
+End Sub

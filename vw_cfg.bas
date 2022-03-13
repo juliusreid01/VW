@@ -25,7 +25,8 @@ Public Sub Configure()
     VW_TYPE_STR(SignalType.Bus) = """Bus"""
 
     VW_EVENT_TYPE_STR(EventType.Edge) = "Edge"
-    VW_EVENT_TYPE_STR(EventType.Pull) = "Pull"
+    VW_EVENT_TYPE_STR(EventType.Gate0) = "Gate0"
+    VW_EVENT_TYPE_STR(EventType.Gate1) = "Gate1"
     VW_EVENT_TYPE_STR(EventType.GateX) = "GateX"
     VW_EVENT_TYPE_STR(EventType.GateZ) = "GateZ"
 End Sub

@@ -41,6 +41,12 @@ Public Sub ConvertSignal(s as Shape, t as SignalType)
   Init t
 End Sub
 
+' Take a shape but don't do anything
+Public Sub Register(s as Shape, t as SignalType)
+  set shp = s
+  sType = t
+End Sub
+
 ' Initialize the shape
 Private Sub Init(t as SignalType)
   sType = t
@@ -211,6 +217,7 @@ Private Sub SetDataFormats()
     shp.Cells("Prop.SignalSkew.Format").Formula = """0.000 u"""
     shp.Cells("Prop.DutyCycle.Format").Formula = """0.0 u"""
     shp.Cells("Prop.LabelEdges.Format").Formula = """None;All"""
+    shp.Cells("Prop.Trigger.Format").Formula = """Add Node;GateX;GateZ;Gate0;Gate1"""
   end if
   shp.Cells("Prop.LabelFont.Format").Formula = """0 u"""
   shp.Cells("Prop.Delay.Format").Formula = """0.000 u"""
