@@ -1,15 +1,18 @@
 Attribute VB_Name = "vw_cfg"
 
-Public Const VW_0IN as string = "0 in"
+' unit dependent
+Public Const VW_0 as string = "0 in"
 
 Public VW_WIDTH as double
 Public VW_HEIGHT as double
 Public VW_TYPE_STR(0 to 2) as string
+Public VW_EVENT_TYPE_STR(0 to 10) as string
 
 Public Const VW_BUS_YANCHOR as Integer = visAlignBottom
 'Public Const VW_BUS_YANCHOR as Integer = visAlignMiddle
 'Public Const VW_BUS_YANCHOR as Integer = visAlignTop
 
+Public Const VW_COL_EVENT_TYPE as Integer = visScratchA
 Public Const VW_COL_LABEL_NAME as Integer = visScratchB
 
 Public Sub Configure()
@@ -18,4 +21,9 @@ Public Sub Configure()
     VW_TYPE_STR(SignalType.Clock) = """Clock"""
     VW_TYPE_STR(SignalType.Bit) = """Bit"""
     VW_TYPE_STR(SignalType.Bus) = """Bus"""
+
+    VW_EVENT_TYPE_STR(EventType.Edge) = "Edge"
+    VW_EVENT_TYPE_STR(EventType.Pull) = "Pull"
+    VW_EVENT_TYPE_STR(EventType.GateX) = "GateX"
+    VW_EVENT_TYPE_STR(EventType.GateZ) = "GateZ"
 End Sub

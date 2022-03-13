@@ -11,6 +11,5 @@ Public Sub NewSignal_Test()
    s0.NewSignal activepage, SignalType.Bit, 0.5, 10
    s0.NewSignal activepage, SignalType.Bus, 0.5, 9.5
 
-
    Application.EndUndoScope u1, True
 End Sub

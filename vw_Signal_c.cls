@@ -24,25 +24,26 @@ Private Sub Class_Terminate()
   Set shp = Nothing
 End Sub
 
+Public Property Get vsoShp as Shape
+  vsoShp = shp
+End Property
+
 ' Create a new signal of the given type on the input page
 Public Sub NewSignal(p as Page, t as SignalType, x1 as double, y1 as double)
   set shp = p.DrawLine(x1, y1, x1 + VW_WIDTH, y1)
-  Init
+  Init t
 End Sub
 
 ' Convert a shape to the given type on the input page
 Public Sub ConvertSignal(s as Shape, t as SignalType)
   set shp = s
   RemoveSections
-  Init
+  Init t
 End Sub
 
 ' Initialize the shape
-Private Sub Init()
+Private Sub Init(t as SignalType)
   sType = t
-
-  AddUserCells
-  SetUserCells
 
   AddDataCells
   ResetData
@@ -51,6 +52,9 @@ Private Sub Init()
   SetDataTypes
   SetDataFormats
   SetDataHidden
+
+  AddUserCells
+  SetUserCells
 
   ResetVisioData
   ResetGeometry
@@ -73,7 +77,7 @@ Private Sub AddUserCells()
     shp.AddNamedRow visSectionUser, "BusWidth", visTagDefault
     shp.AddNamedRow visSectionUser, "SkewWidth", visTagDefault
     shp.AddNamedRow visSectionUser, "Edges", visTagDefault
-  else
+  elseif sType = SignalType.Clock Then
     shp.AddNamedRow visSectionUser, "ActiveWidth", visTagDefault
     shp.AddNamedRow visSectionUser, "SkewWidth", visTagDefault
     shp.AddNamedRow visSectionUser, "Pulses", visTagDefault
@@ -83,9 +87,13 @@ End Sub
 
 ' Set the User-defined Cells
 Private Sub SetUserCells()
-  shp.Cells("User.Type").Formula = VW_TYPE_STR(SignalType.Clock)
+  shp.Cells("User.Type").Formula = VW_TYPE_STR(sType)
   shp.Cells("User.ChildOffset").Formula = "BlockSizeY"
-  if sType = SignalType.Bit then
+  if sType = SignalType.Clock then
+    shp.Cells("User.ActiveWidth").Formula = VW_0 & "+ (Prop.Period * Prop.DutyCycle)"
+    shp.Cells("User.SkewWidth").Formula = VW_0 & "+ (Prop.Skew * Prop.Period * 0.5)"
+    shp.Cells("User.Pulses").Formula = "CEILING((Width-Geometry1.X2)/Prop.Period)"
+  elseif sType = SignalType.Bit then
     shp.Cells("User.BusWidth").Formula = 1
     shp.Cells("User.Edges").Formula = False
   elseif sType = SignalType.Bus then
@@ -158,7 +166,9 @@ End Sub
 
 ' Set the Shape Data Cell Labels
 Private Sub SetDataLabels()
-  shp.Cells("Prop.ActiveLow.Label").Formula = """Active Low"""
+  If sType = SignalType.Bit or sType = SignalType.Clock Then
+    shp.Cells("Prop.ActiveLow.Label").Formula = """Active Low"""
+  end if
   if sType = SignalType.Clock then
     shp.Cells("Prop.Skew.Label").Formula = """Skew %"""
     shp.Cells("Prop.DutyCycle.Label").Formula = """Duty Cycle %"""
@@ -273,8 +283,8 @@ Public Sub ResetGeometry(Optional s as Shape = Nothing)
   AddGeometry Section:=visSectionFirstComponent
   if sType = SignalType.Bus Then AddGeometry NoFill:=True
 
-  SetRowXY "Width*0", 0, visRowComponent + 1, visSectionFirstComponent + 1, visTagMoveTo
-  SetRowXY "Width*1", 0, visRowComponent + 2, visSectionFirstComponent + 1, visTagLineTo
+  SetRowXY "Width*0", 0, visRowComponent + 1, visSectionFirstComponent, visTagMoveTo
+  SetRowXY "Width*1", 0, visRowComponent + 2, visSectionFirstComponent, visTagLineTo
 End Sub
 
 Private Sub AddGeometry(Optional Section as Integer = -1, Optional NoShow as Variant = False, _
@@ -290,10 +300,12 @@ Private Sub AddGeometry(Optional Section as Integer = -1, Optional NoShow as Var
   shp.CellsSRC(Section, visRowComponent, visNoFill + 1).Formula = NoSnap
 End Sub
 
-Private Sub SetRowXY(x as Variant, y as Variant, Row as Integer, _
-                     Optional Section as Integer = visSectionFirstComponent, _
-                     Optional Tag As Integer = visTagDefault)
-  Dim xCell, yCell as Cell
+Public Sub SetRowXY(x as Variant, y as Variant, Row as Integer, _
+                    Optional Section as Integer = visSectionFirstComponent, _
+                    Optional Tag As Integer = visTagDefault)
+  Dim xCell as Cell
+  Dim yCell as Cell
+  Dim bRow as Integer
 
   If shp.RowExists(Section, Row, visExistsLocally) = false then _
     shp.AddRow Section, Row, Tag
@@ -311,15 +323,81 @@ Private Sub SetRowXY(x as Variant, y as Variant, Row as Integer, _
       SetRowXY xCell.Name, "Height-" & yCell.Name, Row, visSectionFirstComponent + 1, Tag
       Select Case VW_BUS_YANCHOR
        case visAlignBottom, visAlignTop
-        SetRowXY xCell.Name, yCell.Name, Row - 1, visSectionConnectionPts, visTagDefault
+        bRow = ((Row-1) *(shp.RowCount(visSectionFirstComponent)-1))
+        SetRowXY xCell.Name, yCell.Name, bRow + 0, visSectionConnectionPts, visTagDefault
+        SetRowXY xCell.Name, shp.CellsSRC(visSectionFirstComponent+1, Row, visY).Name, _
+                bRow + 1, visSectionConnectionPts, visTagDefault
        case visAlignMiddle
         ' //TODO connection points needs to be centered properly
         SetRowXY xCell.Name, "Height*0.5", Row - 1, visSectionConnectionPts, visTagDefault
       End Select
     End if
-  ElseIf Section = (visSectionFirstComponent + 1) and sType = SignalType.Bus _
-         and VW_BUS_YANCHOR <> visAlignMiddle Then
-    SetRowXY xCell.Name, yCell.Name, Row - 1, visSectionConnectionPts, visTagDefault
   End If
+
+End Sub
+
+' events are added to the scratch section
+Public Sub AddEvent(x as Variant, pType as EventType)
+  Dim EventRow as Integer
+  Dim y as Variant
+  Dim lblShp As Shape
+  Dim TestCell as Cell
+  Dim ScratchCell as Cell
+
+  EventRow = visRowLast
+  For i = 0 to shp.RowCount(visSectionScratch) - 1
+    Set ScratchCell = shp.CellsSRC(visSectionScratch, i, visScratchX)
+    Set TestCell = shp.Cells("User.Test")
+    TestCell.Formula = x
+    If ScratchCell.Formula = TestCell.Formula or ScratchCell.Result("") = TestCell.Result("") Then
+      Row = i
+      y = shp.CellsSRC(visSectionScratch, i, visScratchY).Formula
+    ElseIf ScratchCell.Result("") < TestCell.Result("") Then
+      Row = i + 1
+      y = "Height-" & shp.CellsSRC(visSectionScratch, i, visScratchY).Name
+    End If
+  Next i
+
+  If EventRow = visRowLast Then Row = shp.AddRow(visSectionScratch, Row, visTagDefault)
+
+  SetRowXY x, y, Row, visSectionScratch, visTagDefault
+  shp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Formula = chr(34) & VW_EVENT_TYPE_STR(pType) & chr(34)
+End Sub
+
+' remove events and geometry > width
+Public Sub CleanUp()
+  Dim GeoCnt as Integer
+
+  GeoCnt = 1
+
+  If sType = SignalType.Bus Then GeoCnt = 2
+
+  ' delete events >= Width
+  for i = shp.RowCount(visSectionScratch) - 1 to 0 Step -1
+    if shp.CellsSRC(visSectionScratch, i, visScratchX).Result("") >= shp.Cells("Width") Then
+      for each s in shp.ContainingPage.Shapes
+        if s.Name = shp.CellsSRC(visSectionScratch, visRowLast, VW_COL_LABEL_NAME).ResultStr("") _
+        or s.Name = shp.CellsSRC(visSectionScratch, visRowLast, VW_COL_NODE_NAME).ResultStr("") Then s.Delete
+      Next
+      shp.DeleteSection visSectionFirstComponent + GeoCnt + i
+      shp.DeleteRow visSectionScratch, i
+    end if
+  Next i
+
+  ' delete connection points > Width
+  for i = shp.RowCount(visSectionConnectionPts) - 1 to 0 Step -1
+    if shp.CellsSRC(visSectionConnectionPts, i, visX).Result("") > shp.Cells("Width") then _
+      shp.DeleteRow visSectionConnectionPts, i
+  Next i
+
+  ' delete geometry > width
+  For i = shp.RowCount(visSectionFirstComponent) - 1 to 0 Step -1
+    if shp.CellsSRC(visSectionFirstComponent, i, visX).Result("") > shp.Cells("Width") Then
+      If sType = SignalType.Bus Then
+        shp.DeleteRow visSectionFirstComponent + 1, i
+      End If
+      shp.DeleteRow visSectionFirstComponent, i
+    end if
+  Next i
 
 End Sub
