@@ -10,18 +10,21 @@ Attribute VB_Exposed = False
 
 ' Class module to wrap around a Visio Shape to draw clocks
 Private shp as Shape
+Private signal as vw_Signal_c
 
-Public Sub Start(ByRef signal as vw_Signal_c)
+Public Sub Class_Terminate()
+    set shp = Nothing
+    set signal = Nothing
+End Sub
+
+Public Sub Start(ByRef s as vw_Signal_c)
     Dim TestCell as Cell
     Dim Row as Integer
 
+    set signal = s
     set shp = signal.vsoShp
 
     ' initial delay
-    If shp.RowCount(visSectionFirstComponent) < 4 Then
-        'shp.AddRow visSectionFirstComponent, 2, visTagLineTo
-        'shp.AddRow visSectionConnectionPts, 1, visTagDefault
-    End If
     signal.SetRowXY "Geometry1.X1+Prop.Delay", "Geometry1.Y1", 2, visSectionFirstComponent, visTagLineTo, _
                     Cbool(shp.RowCount(visSectionFirstComponent) < 4)
 
@@ -39,20 +42,26 @@ Public Sub Start(ByRef signal as vw_Signal_c)
 
     signal.CleanUp
 
-    'Redraw
+    Redraw = True
 End Sub
 
-Private Sub Redraw()
-    Dim x as Variant
-    Dim y as Variant
+Private Sub Redraw(Init as Boolean)
     Dim Row as Integer
     Row = 3
 
     For i = 0 to shp.RowCount(visSectionScratch) - 1
-        Select Case shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE)
+        Select Case shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultStr("")
          Case VW_EVENT_TYPE_STR(EventType.Edge)
-            x = shp.CellsSRC(visSectionScratch, i, visX).Name & "+Prop.SkewWidth"
-            y = shp.CellsSRC(visSectionScratch, i, visX).Formula
+            If i > 0 Then
+                signal.SetRowXY x:=shp.CellsSRC(visSectionScratch, i, visX).Name, _
+                                y:=shp.CellsSRC(visSectionScratch, i-1, visY).Name, _
+                                Row:=Row, Insert:=Init
+                Row = Row + 1
+            End If
+            signal.SetRowXY x:=shp.CellsSRC(visSectionScratch, i, visX).Name & "+User.SkewWidth", _
+                            y:=shp.CellsSRC(visSectionScratch, i, visY).Name, _
+                            Row:=Row, Insert:=Init
+            Row = Row + 1
         End Select
     Next i
 End Sub

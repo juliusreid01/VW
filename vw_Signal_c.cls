@@ -171,6 +171,7 @@ Private Sub SetDataLabels()
   end if
   if sType = SignalType.Clock then
     shp.Cells("Prop.Skew.Label").Formula = """Skew %"""
+    shp.Cells("Prop.SignalSkew.Label").Formula = """Signal Skew"""
     shp.Cells("Prop.DutyCycle.Label").Formula = """Duty Cycle %"""
   end if
   shp.Cells("Prop.LabelEdges.Label").Formula = """Label Edges"""
@@ -205,14 +206,14 @@ End Sub
 ' Set the Shape Data Cell Formats
 Private Sub SetDataFormats()
   if sType = SignalType.Clock then
-    shp.Cells("Prop.Period.Format").Formula = """0.0 u"""
-    shp.Cells("Prop.SignalSkew.Format").Formula = """0.0 u"""
+    shp.Cells("Prop.Period.Format").Formula = """0.00 u"""
     shp.Cells("Prop.Skew.Format").Formula = """0.0 u"""
+    shp.Cells("Prop.SignalSkew.Format").Formula = """0.000 u"""
     shp.Cells("Prop.DutyCycle.Format").Formula = """0.0 u"""
     shp.Cells("Prop.LabelEdges.Format").Formula = """None;All"""
   end if
   shp.Cells("Prop.LabelFont.Format").Formula = """0 u"""
-  shp.Cells("Prop.Delay.Format").Formula = """0.0 u"""
+  shp.Cells("Prop.Delay.Format").Formula = """0.000 u"""
 End Sub
 
 ' Set the Shape Data Cells Invisible field
@@ -314,12 +315,13 @@ Private Sub AddGeometry(Optional Section as Integer = -1, Optional NoShow as Var
 End Sub
 
 Public Sub SetRowXY(x as Variant, y as Variant, Row as Integer, _
-                    Section as Integer, Tag As Integer, Optional Insert as Boolean = False)
+                    Optional Section as Integer = visSectionFirstComponent, _
+                    Optional Tag as Integer = visTagLineTo, Optional Insert as Boolean = False)
   Dim xCell as Cell
   Dim yCell as Cell
   Dim bRow as Integer
 
-  If shp.RowExists(Section, Row, visExistsLocally) = False or Insert = True _
+  If shp.RowExists(Section, Row, visExistsLocally) = False or Insert = True Then _
     shp.AddRow Section, Row, Tag
 
   Set xCell = shp.CellsSRC(Section, Row, visX)
