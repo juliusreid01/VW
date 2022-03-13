@@ -285,6 +285,19 @@ Public Sub ResetGeometry(Optional s as Shape = Nothing)
 
   SetRowXY "Width*0", 0, visRowComponent + 1, visSectionFirstComponent, visTagMoveTo
   SetRowXY "Width*1", 0, visRowComponent + 2, visSectionFirstComponent, visTagLineTo
+
+  If sType = SignalType.Clock Then ResetClock
+End Sub
+
+Public Sub ResetClock(Optional s as Shape = Nothing)
+  Dim clk as vw_Clock_c
+  if Not s is Nothing then
+    set shp = s
+    sType = SignalType.Clock
+  End If
+
+  set clk = New vw_Clock_c
+  clk.DrawMe Me
 End Sub
 
 Private Sub AddGeometry(Optional Section as Integer = -1, Optional NoShow as Variant = False, _

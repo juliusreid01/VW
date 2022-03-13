@@ -23,18 +23,22 @@ Public Sub DrawMe(ByRef signal as vw_Signal_c)
     set shp = signal.vsoShp
 
     ' initial delay
-    If shp.RowCount(visSectionFirstComponent) < 4 Then _
+    If shp.RowCount(visSectionFirstComponent) < 4 Then
         shp.AddRow visSectionFirstComponent, 2, visTagLineTo
+        shp.AddRow visSectionFirstComponent, 1, visTagDefault
+    End If
     signal.SetRowXY "Geometry1.X1+Prop.Delay", "Geometry1.Y1", 2, visSectionFirstComponent, visTagLineTo
 
     ' user a test cell to prevent exceeding the shape's width
     Set TestCell = shp.Cells("User.Test")
     Row = 1
 
-    Do While TestCell.Result("") < shp.Cells("Width").Result("") 
-        Row = Row + 1
-        TestCell.Formula = "User.Active+Scratch.X" & Cstr(Row)
+    TestCell.Formula = "Prop.Delay"
+    Do While TestCell.Result("") < shp.Cells("Width").Result("")
+        signal.AddEvent TestCell.Formula, EventType.Edge
+        TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(Row)
         If (Row and 1) = 0 Then TestCell.Formula = "Prop.Period-" & TestCell.Formula
+        Row = Row + 1
     Loop
 
 End Sub
