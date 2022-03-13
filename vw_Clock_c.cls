@@ -42,7 +42,7 @@ Public Sub Start(ByRef s as vw_Signal_c)
 
     signal.CleanUp
 
-    Redraw = True
+    Redraw True
 End Sub
 
 Private Sub Redraw(Init as Boolean)
