@@ -20,9 +20,9 @@ Public Const VW_COL_EVENT_SHOW as Integer = visScratchD
 Public Sub Configure()
     VW_WIDTH = 3
     VW_HEIGHT = ActiveWindow.Shape.Cells("BlockSizeY").Result("")
-    VW_TYPE_STR(SignalType.Clock) = """Clock"""
-    VW_TYPE_STR(SignalType.Bit) = """Bit"""
-    VW_TYPE_STR(SignalType.Bus) = """Bus"""
+    VW_TYPE_STR(SignalType.Clock) = "Clock"
+    VW_TYPE_STR(SignalType.Bit) = "Bit"
+    VW_TYPE_STR(SignalType.Bus) = "Bus"
 
     VW_EVENT_TYPE_STR(EventType.Edge) = "Edge"
     VW_EVENT_TYPE_STR(EventType.Gate0) = "Gate0"

@@ -93,7 +93,7 @@ End Sub
 
 ' Set the User-defined Cells
 Private Sub SetUserCells()
-  shp.Cells("User.Type").Formula = VW_TYPE_STR(sType)
+  shp.Cells("User.Type").Formula = chr(34) & VW_TYPE_STR(sType) & chr(34)
   shp.Cells("User.ChildOffset").Formula = "BlockSizeY"
   if sType = SignalType.Clock then
     shp.Cells("User.ActiveWidth").Formula = VW_0 & "+ (Prop.Period * Prop.DutyCycle)"

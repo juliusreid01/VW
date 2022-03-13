@@ -5,6 +5,7 @@ Public Sub CellChanged(vsoCell as IVCell)
     Dim clk as vw_Clock_c
 
     vw_cfg.Configure
+    Set shp = vsoCell.Shape
 
     If shp.CellExists("User.Type", visExistsLocally) = True Then
         Select Case shp.Cells("User.Type").ResultStr("")
