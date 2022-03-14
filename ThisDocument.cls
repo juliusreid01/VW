@@ -17,12 +17,16 @@ Private Sub Document_DocumentOpened(ByVal doc as IVDocument)
   BUSY = False
 End Sub
 
+Public Sub RefreshApp()
+  if vsoApp is Nothing Then Set vsoApp = Application
+End Sub
+
 Private Sub Document_BeforeDocumentClosed(ByVal doc as IVDocument)
   Set vsoApp = Nothing
 End Sub
 
 Private Sub vsoApp_CellChanged(ByVal vsoCell As IVCell)
-  'pass the cell to a Controller for drawing updates
+  vw_controller.CellChanged vsoCell
 End Sub
 
 Private Sub vsoApp_BeforeShapeDelete(ByVal vsoShp As IVShape)

@@ -6,6 +6,12 @@ Public Enum SignalType
     Bus   = 2
 End Enum
 
+Public Enum EventPosition
+    Absolute = 0
+    Posedge  = 1
+    Negedge  = 2
+End Enum
+
 Public Enum EventType
     Edge = 0
     Gate0 = 1
