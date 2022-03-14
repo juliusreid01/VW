@@ -55,8 +55,7 @@ Private Sub MyEvents()
     ' updates the scratch section with events
     Do While TestCell.Result("") < shp.Cells("Width").Result("")
         signal.SetRowXY TestCell.Formula, y, ScratchRow, visSectionScratch, visTagDefault
-        shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Formula = _
-            chr(34) & VW_EVENT_TYPE_STR(EventType.Edge) & chr(34)
+        shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Formula = EventType.Edge
         ScratchRow = ScratchRow + 1
         TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(ScratchRow)
         If (ScratchRow and 1) = 0 Then TestCell.Formula = "Prop.Period-" & TestCell.Formula
@@ -76,8 +75,8 @@ Private Sub Redraw(Optional Start as Integer = 0)
 
     ' read the scratch section to update the geometry
     For i = Start to shp.RowCount(visSectionScratch) - 1
-        Select Case shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultStr("")
-         Case VW_EVENT_TYPE_STR(EventType.Edge)
+        Select Case shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Result("")
+         Case EventType.Edge
             InsertRow = Cbool(shp.CellsSRC(visSectionFirstComponent, Row, visX).Result("") = shp.Cells("Width"))
             If i > 0 Then
                 signal.SetRowXY x:=shp.CellsSRC(visSectionScratch, i, visX).Name, _

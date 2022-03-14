@@ -397,7 +397,7 @@ Public Sub AddEvent(x as Variant, pType as EventType)
   If EventRow = visRowLast Then Row = shp.AddRow(visSectionScratch, Row, visTagDefault)
 
   SetRowXY x, y, Row, visSectionScratch, visTagDefault
-  shp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Formula = chr(34) & VW_EVENT_TYPE_STR(pType) & chr(34)
+  shp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Formula = pType
 End Sub
 
 ' remove events and geometry > width

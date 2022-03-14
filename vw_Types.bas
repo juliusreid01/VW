@@ -13,11 +13,11 @@ Public Enum EventPosition
 End Enum
 
 Public Enum EventType
-    Edge  = 0
-    Delay = 1
-    Gate0 = 2
-    Gate1 = 3
-    GateX = 4
-    GateZ = 5
+    Edge  = 1
+    Delay = 2
+    Gate0 = 3
+    Gate1 = 4
+    GateX = 5
+    GateZ = 6
 End Enum
     
