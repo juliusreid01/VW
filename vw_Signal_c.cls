@@ -127,8 +127,9 @@ Private Sub AddDataCells()
     shp.AddNamedRow visSectionProp, "DutyCycle", visTagDefault
     shp.AddNamedRow visSectionProp, "SignalSkew", visTagDefault
   end if
-  shp.AddNamedRow visSectionProp, "Trigger", visTagDefault
-  shp.AddNamedRow visSectionProp, "Events", visTagDefault
+  shp.AddNamedRow visSectionProp, "EventType", visTagDefault
+  shp.AddNamedRow visSectionProp, "EventTrigger", visTagDefault
+  shp.AddNamedRow visSectionProp, "EventPosition", visTagDefault
   shp.AddNamedRow visSectionProp, "LabelEdges", visTagDefault
   shp.AddNamedRow visSectionProp, "LabelSize", visTagDefault
   shp.AddNamedRow visSectionProp, "LabelFont", visTagDefault
@@ -150,6 +151,7 @@ Public Sub ResetData(Optional s as Shape = Nothing)
   else
     shp.Cells("Prop.Delay").Formula = 0
   end if
+  shp.Cells("Prop.EventType").Formula = "Index(0, Prop.EventType.Format)"
   shp.Cells("Prop.LabelEdges").Formula = "Index(0,Prop.LabelEdges.Format)"
   shp.Cells("Prop.LabelSize").Formula = "BlockSizeX*0.667"
   shp.Cells("Prop.LabelFont").Formula = "8 pt"
@@ -167,6 +169,9 @@ Private Sub SetDataPrompts()
   else
     shp.Cells("Prop.Delay.Prompt").Formula = """Amount of delay before each transition"""
   end if
+  shp.Cells("Prop.EventType.Prompt").Formula = """Select an event type to add/modify"""
+  shp.Cells("Prop.EventTrigger.Prompt").Formula = """Input the trigger type for this event e.g. Posedge"""
+  shp.Cells("Prop.EventPosition.Prompt").Formula = """Input the position based on the trigger"""
   shp.Cells("Prop.LabelEdges.Prompt").Formula = """Select which labels to show on transitions"""
 End Sub
 
@@ -183,6 +188,9 @@ Private Sub SetDataLabels()
   shp.Cells("Prop.LabelEdges.Label").Formula = """Label Edges"""
   shp.Cells("Prop.LabelSize.Label").Formula = """Label Size"""
   shp.Cells("Prop.LabelFont.Label").Formula = """Label Font Pt"""
+  shp.Cells("Prop.EventType.Label").Formula = """Event Type"""
+  shp.Cells("Prop.EventTrigger.Label").Formula = """Trigger"""
+  shp.Cells("Prop.EventPosition.Label").Formula = """Position"""
 End Sub
 
 ' Set the Shape Data Cell Types
@@ -202,8 +210,9 @@ Private Sub SetDataTypes()
     shp.Cells("Prop.DutyCycle.Type").Formula = visPropTypeNumber
     shp.Cells("Prop.SignalSkew.Type").Formula = visPropTypeNumber
   end if
-  shp.Cells("Prop.Trigger.Type").Formula = visPropTypeListFix
-  shp.Cells("Prop.Events.Type").Formula = visPropTypeNumber
+  shp.Cells("Prop.EventType.Type").Formula = visPropTypeListFix
+  shp.Cells("Prop.EventTrigger.Type").Formula = visPropTypeListFix
+  shp.Cells("Prop.EventPosition.Type").Formula = visPropTypeNumber
   shp.Cells("Prop.LabelEdges.Type").Formula = visPropTypeListVar
   shp.Cells("Prop.LabelSize.Type").Formula = visPropTypeNumber
   shp.Cells("Prop.LabelFont.Type").Formula = visPropTypeNumber
@@ -217,10 +226,11 @@ Private Sub SetDataFormats()
     shp.Cells("Prop.SignalSkew.Format").Formula = """0.000 u"""
     shp.Cells("Prop.DutyCycle.Format").Formula = """0.0 u"""
     shp.Cells("Prop.LabelEdges.Format").Formula = """None;All"""
-    shp.Cells("Prop.Trigger.Format").Formula = """Add Node;GateX;GateZ;Gate0;Gate1;"""
+    shp.Cells("Prop.EventType.Format").Formula = """;Add Node;GateX;GateZ;Gate0;Gate1"""
   end if
   shp.Cells("Prop.LabelFont.Format").Formula = """0 u"""
   shp.Cells("Prop.Delay.Format").Formula = """0.000 u"""
+  shp.Cells("Prop.EventTrigger.Format").Formula = """Absolute;Posedge;Negedge"""
 End Sub
 
 ' Set the Shape Data Cells Invisible field
@@ -229,6 +239,8 @@ Private Sub SetDataHidden()
   shp.Cells("Prop.Signal.Invisible").Formula = "STRSAME("""", Prop.Clock.Format)"
   shp.Cells("Prop.LabelSize.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges))"
   shp.Cells("Prop.LabelFont.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges))"
+  shp.Cells("Prop.EventTrigger.Invisible").Formula = "STRSAME("""", Prop.EventType)"
+  shp.Cells("Prop.EventPosition.Invisible").Formula = "STRSAME("""", Prop.EventType)"
 End Sub
 
 ' Reset the Visio Shape Data
