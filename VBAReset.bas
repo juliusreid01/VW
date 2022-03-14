@@ -6,7 +6,7 @@ Public Sub VBA_Reset()
     On Error Resume Next
 
    ' Replace D:\VW\ with your path of the files
-    Const VW_HOME as String = "D:\VW\"
+    Const VW_HOME as String = "D:\VW\VBComponents\"
     Dim MyComponents as Object
     Set MyComponents = CreateObject("Scripting.Dictionary")
 
