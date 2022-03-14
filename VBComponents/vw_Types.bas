@@ -5,6 +5,7 @@ Public Enum SignalType
     Bit    = 1
     Bus    = 2
     Signal = 3
+    Void   = -1
 End Enum
 
 Public Enum EventPosition

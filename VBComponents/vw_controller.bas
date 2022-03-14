@@ -16,13 +16,20 @@ Public Sub CellChanged(vsoCell as IVCell)
     End If
 End Sub
 
-Public Sub SetSignals(Child as Shape, Mode as SignalType)
+Public Sub SetSignals(Child as Shape, Optional Mode as SignalType = SignalType.Void)
     Dim CurParent as String
     Dim Parents as String
     Dim s As Shape
 
+    Dim List() as String
     Dim Value as String
     Dim Format as String
+
+    If Mode = SignalType.Void Then
+        SetSignals Child, SignalType.Clock
+        SetSignals Child, SignalType.Signal
+        Exit Sub
+    End If
 
     Value  = "Prop.Signal"
     Format = "Prop.Signal.Format"
@@ -39,10 +46,10 @@ Public Sub SetSignals(Child as Shape, Mode as SignalType)
         If s.CellExists("User.Type", visExistsLocally) Then
             If Mode = SignalType.Clock Then
                 If s.Cells("User.Type").ResultStr("") = VW_TYPE_STR(SignalType.Clock) and _
-                    s.Name <> Child.Name Then Parents = s.Name & ";"
+                    s.Name <> Child.Name Then Parents = Parents & s.Name & ";"
             ElseIf Mode = SignalType.Signal Then
                 If s.Cells("User.Type").ResultStr("") = VW_TYPE_STR(SignalType.Bit) and _
-                    s.Name <> Child.Name Then Parents = s.Name & ";"
+                    s.Name <> Child.Name Then Parents = Parents & s.Name & ";"
                 '//TODO. How can a bus be a parent
                 'If s.Cells("User.Type").ResultStr("") = VW_TYPE_STR(SignalType.Bus) and _
                 '    s.Name <> Child.Name Then Parents = s.Name & ";"
@@ -59,6 +66,11 @@ Public Sub SetSignals(Child as Shape, Mode as SignalType)
     Next
 
     Child.Cells(Format).Formula = chr(34) & Parents & chr(34)
+    List = Split(Parents, ";")
+    Child.Cells(Value).Formula = "INDEX(" & UBound(List) & "," & Format & ")"
+    For i = 0 to UBound(List)
+        If CurParent = List(i) Then Child.Cells(Value).Formula = "INDEX(" & Cstr(i) & "," & Format & ")"
+    Next i
 End Sub
 
 Private Function GetShapes(sType as SignalType, Parent as Shape, ChildName as String) as String
