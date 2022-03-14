@@ -46,7 +46,7 @@ Private Sub MyEvents()
         TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(ScratchRow+1)
         If (ScratchRow and 1) = 0 Then TestCell.Formula = "Prop.Period-" & TestCell.Formula
         y = "Height-" & shp.CellsSRC(visSectionScratch, ScratchRow, visY).Name
-        ScratchRow = ScratchRow + 1
+        ScratchRow = ScratchRow + 2
     End If
 
     Do While TestCell.Result("") < shp.Cells("Width").Result("")
@@ -56,7 +56,7 @@ Private Sub MyEvents()
         TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(ScratchRow)
         If (ScratchRow and 1) = 0 Then TestCell.Formula = "Prop.Period-" & TestCell.Formula
         y = "Height-" & shp.CellsSRC(visSectionScratch, ScratchRow-1, visY).Name
-        ScratchRow = ScratchRow + 2
+        ScratchRow = ScratchRow + 1
     Loop
 
     Redraw
