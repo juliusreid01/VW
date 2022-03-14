@@ -55,7 +55,7 @@ Private Sub MyEvents()
     ' updates the scratch section with events
     Do While TestCell.Result("") < shp.Cells("Width").Result("")
         signal.SetRowXY TestCell.Formula, y, ScratchRow, visSectionScratch, visTagDefault
-        shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Formula = EventType.Edge
+        shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Formula = EventType.Edge                
         ScratchRow = ScratchRow + 1
         TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(ScratchRow)
         If (ScratchRow and 1) = 0 Then TestCell.Formula = "Prop.Period-" & TestCell.Formula
