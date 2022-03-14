@@ -6,7 +6,7 @@ Public Const VW_0 as string = "0 in"
 Public VW_WIDTH as double
 Public VW_HEIGHT as double
 Public VW_TYPE_STR(0 to 2) as string
-Public VW_EVENT_TYPE_STR(0 to 10) as string
+Public VW_EVENT_TYPE_STR(0 to 20) as string
 
 Public Const VW_BUS_YANCHOR as Integer = visAlignBottom
 'Public Const VW_BUS_YANCHOR as Integer = visAlignMiddle
@@ -25,6 +25,7 @@ Public Sub Configure()
     VW_TYPE_STR(SignalType.Bus) = "Bus"
 
     VW_EVENT_TYPE_STR(EventType.Edge) = "Edge"
+    VW_EVENT_TYPE_STR(EventType.Delay) = "Delay"
     VW_EVENT_TYPE_STR(EventType.Gate0) = "Gate0"
     VW_EVENT_TYPE_STR(EventType.Gate1) = "Gate1"
     VW_EVENT_TYPE_STR(EventType.GateX) = "GateX"

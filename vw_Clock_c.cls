@@ -37,6 +37,7 @@ Private Sub MyEvents()
     ' use Test Cell to compare formula results
     Set TestCell = shp.Cells("User.Test")
 
+    ' determine which row to begin reading from scratch and formula to use
     If shp.RowCount(visSectionScratch) = 0 Then
         ScratchRow = 1
         TestCell.Formula = "Prop.Delay"
@@ -49,6 +50,7 @@ Private Sub MyEvents()
         ScratchRow = ScratchRow + 2
     End If
 
+    ' updates the scratch section with events
     Do While TestCell.Result("") < shp.Cells("Width").Result("")
         signal.SetRowXY TestCell.Formula, y, ScratchRow - 1, visSectionScratch, visTagDefault
         shp.CellsSRC(visSectionScratch, ScratchRow - 1, VW_COL_EVENT_TYPE).Formula = _
@@ -65,8 +67,10 @@ End Sub
 Private Sub Redraw()
     Dim InsertRow as Boolean
     Dim Row as Integer
+    Dim NoShow as Variant
     Row = 3
 
+    ' read teh scratch section to update the geometry
     For i = 0 to shp.RowCount(visSectionScratch) - 1
         Select Case shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultStr("")
          Case VW_EVENT_TYPE_STR(EventType.Edge)
@@ -81,6 +85,21 @@ Private Sub Redraw()
             signal.SetRowXY x:=shp.CellsSRC(visSectionScratch, i, visX).Name & "+User.SkewWidth", _
                             y:=shp.CellsSRC(visSectionScratch, i, visY).Name, _
                             Row:=Row, Insert:=InsertRow
+            ' draw an edge for line ending manipulation
+            If shp.SectionExists(visSectionFirstComponent + i + 1, visExistsLocally) = False Then
+                If ((i+1) and 1) = 0 Then
+                    NoShow = "IF(EndArrow=0,TRUE,FALSE)"
+                Else
+                    NoShow = "IF(BeginArrow=0,TRUE,FALSE)"
+                End If
+                signal.AddGeometry NoFill:=True, NoShow:=NoShow
+            End If
+            signal.SetRowXY x:="Geometry1.X" & Cstr(Row), y:="Geometry1.Y" & Cstr(Row), Row:=1, _
+                            Section:=visSectionFirstComponent + i + 1, Tag:=visTagMoveTo
+            signal.SetRowXY x:="Scratch.X" & Cstr(i+1), y:="Height-Scratch.Y" & Cstr(i+1), Row:=2, _
+                            Section:=visSectionFirstComponent + i + 1, Tag:=visTagLineTo
+            signal.SetRowXY x:="Geometry1.X" & Cstr(Row), y:="Geometry1.Y" & Cstr(Row), Row:=3, _
+                            Section:=visSectionFirstComponent + i + 1, Tag:=visTagLineTo
             Row = Row + 1
         End Select
     Next i

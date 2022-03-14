@@ -225,8 +225,8 @@ Private Sub SetDataFormats()
     shp.Cells("Prop.Skew.Format").Formula = """0.0 u"""
     shp.Cells("Prop.SignalSkew.Format").Formula = """0.000 u"""
     shp.Cells("Prop.DutyCycle.Format").Formula = """0.0 u"""
-    shp.Cells("Prop.LabelEdges.Format").Formula = """None;All"""
-    shp.Cells("Prop.EventType.Format").Formula = """;Add Node;GateX;GateZ;Gate0;Gate1"""
+    shp.Cells("Prop.LabelEdges.Format").Formula = """None;Positive;Negative;All"""
+    shp.Cells("Prop.EventType.Format").Formula = """;Delay;Node;GateX;GateZ;Gate0;Gate1"""
   end if
   shp.Cells("Prop.LabelFont.Format").Formula = """0 u"""
   shp.Cells("Prop.Delay.Format").Formula = """0.000 u"""
@@ -320,17 +320,17 @@ Public Sub ResetClock(Optional s as Shape = Nothing)
   clk.Start Me
 End Sub
 
-Private Sub AddGeometry(Optional Section as Integer = -1, Optional NoShow as Variant = False, _
-                        Optional NoFill as Boolean = False, Optional NoLine as Boolean = False, _
-                        Optional NoSnap as Boolean = False)
+Public Sub AddGeometry(Optional Section as Integer = -1, Optional NoShow as Variant = False, _
+                       Optional NoFill as Boolean = False, Optional NoLine as Boolean = False, _
+                       Optional NoSnap as Boolean = False)
   If Section < 0 then
     Section = shp.AddSection(visSectionFirstComponent + shp.GeometryCount)
     shp.AddRow Section, visRowComponent, visTagComponent
   End If
   shp.CellsSRC(Section, visRowComponent, visNoFill + 0).Formula = NoFill
   shp.CellsSRC(Section, visRowComponent, visNoFill + 1).Formula = NoLine
-  shp.CellsSRC(Section, visRowComponent, visNoFill + 1).Formula = NoShow
-  shp.CellsSRC(Section, visRowComponent, visNoFill + 1).Formula = NoSnap
+  shp.CellsSRC(Section, visRowComponent, visNoFill + 2).Formula = NoShow
+  shp.CellsSRC(Section, visRowComponent, visNoFill + 3).Formula = NoSnap
 End Sub
 
 Public Sub SetRowXY(x as Variant, y as Variant, Row as Integer, _
