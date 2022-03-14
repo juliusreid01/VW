@@ -33,6 +33,7 @@ Private Sub MyEvents()
     ' Row to modify in scratch section
     Dim ScratchRow as Integer
     Dim y as Variant
+    Dim Start as Integer
 
     ' use Test Cell to compare formula results
     Set TestCell = shp.Cells("User.Test")
@@ -42,12 +43,14 @@ Private Sub MyEvents()
         ScratchRow = 1
         TestCell.Formula = "Prop.Delay"
         y = "Height"
+        Start = 0
     Else
         ScratchRow = shp.RowCount(visSectionScratch) - 1
         TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(ScratchRow+1)
         If (ScratchRow and 1) = 0 Then TestCell.Formula = "Prop.Period-" & TestCell.Formula
         y = "Height-" & shp.CellsSRC(visSectionScratch, ScratchRow, visY).Name
         ScratchRow = ScratchRow + 2
+        Start = ScratchRow - 1
     End If
 
     ' updates the scratch section with events
@@ -61,17 +64,19 @@ Private Sub MyEvents()
         ScratchRow = ScratchRow + 1
     Loop
 
-    Redraw
+    Redraw Start
 End Sub
 
-Private Sub Redraw()
+Private Sub Redraw(Optional Start as Integer = 0)
     Dim InsertRow as Boolean
     Dim Row as Integer
     Dim NoShow as Variant
     Row = 3
 
-    ' read teh scratch section to update the geometry
-    For i = 0 to shp.RowCount(visSectionScratch) - 1
+    If Start > 0 Then Row = 2 * (Start + 1)
+
+    ' read the scratch section to update the geometry
+    For i = Start to shp.RowCount(visSectionScratch) - 1
         Select Case shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultStr("")
          Case VW_EVENT_TYPE_STR(EventType.Edge)
             InsertRow = Cbool(shp.CellsSRC(visSectionFirstComponent, Row, visX).Result("") = shp.Cells("Width"))
@@ -85,6 +90,7 @@ Private Sub Redraw()
             signal.SetRowXY x:=shp.CellsSRC(visSectionScratch, i, visX).Name & "+User.SkewWidth", _
                             y:=shp.CellsSRC(visSectionScratch, i, visY).Name, _
                             Row:=Row, Insert:=InsertRow
+            '//TODO. Is this common code
             ' draw an edge for line ending manipulation
             If shp.SectionExists(visSectionFirstComponent + i + 1, visExistsLocally) = False Then
                 If ((i+1) and 1) = 0 Then
@@ -100,10 +106,12 @@ Private Sub Redraw()
                             Section:=visSectionFirstComponent + i + 1, Tag:=visTagLineTo
             signal.SetRowXY x:="Geometry1.X" & Cstr(Row), y:="Geometry1.Y" & Cstr(Row), Row:=3, _
                             Section:=visSectionFirstComponent + i + 1, Tag:=visTagLineTo
+
             Row = Row + 1
         End Select
     Next i
 
+    Row = shp.RowCount(visSectionFirstComponent) - 1
     shp.CellsSRC(visSectionFirstComponent, Row, visY).Formula = "Geometry1.Y" & Cstr(Row - 1)
 End Sub
 
