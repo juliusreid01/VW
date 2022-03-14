@@ -236,7 +236,7 @@ End Sub
 ' Set the Shape Data Cells Invisible field
 Private Sub SetDataHidden()
   shp.Cells("Prop.Clock.Invisible").Formula = "STRSAME("""", Prop.Clock.Format)"
-  shp.Cells("Prop.Signal.Invisible").Formula = "STRSAME("""", Prop.Clock.Format)"
+  shp.Cells("Prop.Signal.Invisible").Formula = "STRSAME("""", Prop.Signal.Format)"
   shp.Cells("Prop.LabelSize.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges))"
   shp.Cells("Prop.LabelFont.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges))"
   shp.Cells("Prop.EventTrigger.Invisible").Formula = "STRSAME("""", Prop.EventType)"
