@@ -40,28 +40,27 @@ Private Sub MyEvents()
 
     ' determine which row to begin reading from scratch and formula to use
     If shp.RowCount(visSectionScratch) = 0 Then
-        ScratchRow = 1
+        ScratchRow = 0
         TestCell.Formula = "Prop.Delay"
         y = "Height"
         Start = 0
     Else
-        ScratchRow = shp.RowCount(visSectionScratch) - 1
-        TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(ScratchRow+1)
+        ScratchRow = shp.RowCount(visSectionScratch)
+        TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(ScratchRow)
         If (ScratchRow and 1) = 0 Then TestCell.Formula = "Prop.Period-" & TestCell.Formula
-        y = "Height-" & shp.CellsSRC(visSectionScratch, ScratchRow, visY).Name
-        ScratchRow = ScratchRow + 2
-        Start = ScratchRow - 1
+        y = "Height-" & shp.CellsSRC(visSectionScratch, ScratchRow-1, visY).Name
+        Start = ScratchRow
     End If
 
     ' updates the scratch section with events
     Do While TestCell.Result("") < shp.Cells("Width").Result("")
-        signal.SetRowXY TestCell.Formula, y, ScratchRow - 1, visSectionScratch, visTagDefault
-        shp.CellsSRC(visSectionScratch, ScratchRow - 1, VW_COL_EVENT_TYPE).Formula = _
+        signal.SetRowXY TestCell.Formula, y, ScratchRow, visSectionScratch, visTagDefault
+        shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Formula = _
             chr(34) & VW_EVENT_TYPE_STR(EventType.Edge) & chr(34)
+        ScratchRow = ScratchRow + 1
         TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(ScratchRow)
         If (ScratchRow and 1) = 0 Then TestCell.Formula = "Prop.Period-" & TestCell.Formula
-        y = "Height-" & shp.CellsSRC(visSectionScratch, ScratchRow-1, visY).Name
-        ScratchRow = ScratchRow + 1
+        y = "Height-" & shp.CellsSRC(visSectionScratch, ScratchRow - 1, visY).Name
     Loop
 
     Redraw Start
