@@ -16,6 +16,7 @@ Public Sub CellChanged(vsoCell as IVCell)
     End If
 End Sub
 
+' set the Prop.Clock.Format and Prop.Signal.Format fields to enable shape dependencies
 Public Sub SetSignals(Child as Shape, Optional Mode as SignalType = SignalType.Void)
     Dim CurParent as String
     Dim Parents as String
@@ -73,6 +74,7 @@ Public Sub SetSignals(Child as Shape, Optional Mode as SignalType = SignalType.V
     Next i
 End Sub
 
+' gets all shapes of the given sType that are not the child shape
 Private Function GetShapes(sType as SignalType, Parent as Shape, ChildName as String) as String
     Dim s as Shape
 

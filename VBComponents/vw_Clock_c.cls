@@ -110,6 +110,10 @@ Private Sub Redraw(Optional Start as Integer = 0)
     Next i
 
     Row = shp.RowCount(visSectionFirstComponent) - 1
+    if shp.CellsSRC(visSectionFirstComponent, Row - 1, visX).Result("") = shp.CellsSRC(visSectionFirstComponent, Row, visX).Result("") then
+        shp.DeleteRow visSectionFirstComponent, Row - 1
+    end if
+
     shp.CellsSRC(visSectionFirstComponent, Row, visY).Formula = "Geometry1.Y" & Cstr(Row - 1)
 End Sub
 
@@ -121,13 +125,19 @@ Public Sub CellChanged(vsoCell as IVCell)
     End If
 
     Select Case vsoCell.Name
-     Case "Width"
+     Case "Width", "Prop.Period", "Prop.Delay"
         signal.CleanUp
         MyEvents
-     Case "Prop.Period"
-     Case "Prop.Delay"
-     Case "Prop.Skew"
-     Case "Prop.DutyCycle"
+     Case "Prop.Skew", "Prop.DutyCycle"
+        If VW_LIMIT_PERCENT Then
+            if vsoCell.Result(visUnitCodes.visPercent) > 100 then
+                vsoCell.Formula = "100 %"
+            elseif vsoCell.Result("") < 0 then
+                vsoCell.Formula = "0 % - " & vsoCell.Result("")
+            elseif vsoCell.Result(visUnitCodes.visPercent) < 1 then
+                vsoCell.Formula = 100 * vsoCell.Result(visUnitCodes.visPercent) & "%"
+            end if
+        End If
      Case "Prop.Trigger"
      Case "Prop.Events"
      Case "Prop.LabelEdges"
