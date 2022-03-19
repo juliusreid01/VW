@@ -141,5 +141,6 @@ Public Sub CellChanged(vsoCell as IVCell)
      Case "Prop.Trigger"
      Case "Prop.Events"
      Case "Prop.LabelEdges"
+        If vsoCell.ResultStr("") <> "None" Then vw_controller.DoLabels shp
     End Select
 End Sub

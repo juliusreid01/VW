@@ -271,6 +271,7 @@ Public Sub ResetVisioData(Optional s as Shape = Nothing)
   end if
   shp.Cells("Para.HorzAlign").Formula = visHorzRight
   shp.Cells("TxtPinX").Formula = "Width*0"
+  shp.Cells("TxtLocPinX").Formula = "TxtWidth"
   shp.Cells("TxtWidth").Formula = "LEN(SHAPETEXT(TheText))*Char.Size"
   shp.Cells("FillForegndTrans").Formula = 1
   shp.Cells("Geometry1.NoFill").Formula = False

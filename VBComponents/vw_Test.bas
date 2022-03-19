@@ -12,14 +12,25 @@ Private Const TEST_BIT_Y1 as Double = 9.5
 Private Const TEST_BUS_Y0 as Double = 8
 Private Const TEST_BUS_Y1 as Double = 8.5
 
-Public Sub NewClock_Test()
+Public Sub NewClock_Test(Optional shp as Shape = Nothing, Optional Name as String = "")
    Dim u1 as Double
    Dim c as vw_Signal_c
 
    u1 = Application.BeginUndoScope("ClockTest")
    Set c = New vw_Signal_c
 
-   c.NewSignal ActiveDocument.Pages(1), SignalType.Clock, TEST_X, TEST_CLOCK_Y1
+   if shp is Nothing and Name = "" Then
+      c.NewSignal ActiveDocument.Pages(1), SignalType.Clock, TEST_X, TEST_CLOCK_Y1
+   elseif Name = "" Then
+      c.ConvertSignal shp, SignalType.Clock
+   else
+      For Each shp in ActivePage.Shapes
+         If shp.Name = Name Then
+            c.ConvertSignal shp, SignalType.Clock
+            Exit For
+         End If
+      Next
+   end if
 
    Application.EndUndoScope u1, True
 End Sub

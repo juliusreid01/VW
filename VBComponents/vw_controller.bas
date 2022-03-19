@@ -16,6 +16,9 @@ Public Sub CellChanged(vsoCell as IVCell)
     End If
 End Sub
 
+' refresh the parents of each shape
+
+
 ' set the Prop.Clock.Format and Prop.Signal.Format fields to enable shape dependencies
 Public Sub SetSignals(Child as Shape, Optional Mode as SignalType = SignalType.Void)
     Dim CurParent as String
@@ -87,3 +90,158 @@ Private Function GetShapes(sType as SignalType, Parent as Shape, ChildName as St
         GetShapes = GetShapes & GetShapes(sType, s, ChildName)
     Next
 End Function
+
+' handle the labels of the shape
+Public Sub DoLabels(Parent as Shape)
+    ' collection of labels that may or may not exists
+    Dim Labels as Collection
+    Dim shp As Shape
+    Dim Index as Integer
+    Dim LblIndex as Integer
+    Dim IsLblRow as Boolean
+    Dim Edges as String
+    Dim win as Window
+    Dim Selection as Collection
+
+    ' Error protection
+    If Parent.CellExists("Prop.LabelEdges", visExistsLocally) = False Then
+        Err.Raise vbObjectError + 513, ThisDocument.Name & ":vw_controller:DoLabels", _
+            "Shape is invalid shape type for this operation"
+        Exit Sub
+    End If
+
+    ' get the window for selection
+    For Each w in Application.Windows
+        If w.Page = Parent.ContainingPage And w.Shape.Type = visTypePage Then Set win = w
+    Next
+    ' get the selected shapes
+    If Not win is Nothing Then
+        Set Selection = New Collection
+        For Each s in win.selection
+            Selection.Add s
+        Next
+    End If
+
+    Set Labels = New Collection
+    ' get the labels that exists already
+    For Each shp In Parent.Parent.Shapes
+        If shp.CellExists("User.Parent", visExistsLocally) = True Then
+            If shp.Cells("User.Parent").ResultStr("") = Parent.Name And _
+               shp.Cells("User.Type").ResultStr("") = "Label" Then Labels.Add shp
+        End If
+    Next
+
+    vw_cfg.Configure
+    Index = VW_LABEL_INDEX0
+    LblIndex = 1
+    Set shp = Parent
+    Edges = shp.Cells("Prop.LabelEdges").ResultStr("")
+    For i = 0 to shp.RowCount(visSectionScratch) - 1
+        If shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Result("") = EventType.Edge Then
+            shp.CellsSRC(visSectionScratch, i, VW_COL_LABEL_HIDE).Formula = "STRSAME(Prop.LabelEdges,""None"")"
+            IsLblRow = True
+            ' determine if this is a visible row
+            If (Edges = "Positive" And shp.Cells("Prop.ActiveLow").Result("") = False) Or _
+               (Edges = "Negative" And shp.Cells("Prop.ActiveLow").Result("") = True) Then
+               IsLblRow = Cbool(((i+1) And 1) <> 0)
+            ElseIf (Edges = "Positive" And shp.Cells("Prop.ActiveLow").Result("") = True) Or _
+               (Edges = "Negative" And shp.Cells("Prop.ActiveLow").Result("") = False) Then
+               IsLblRow = Cbool(((i+1) And 1) = 0)
+            ElseIf Edges = "None" Then
+                IsLblRow = False
+            ElseIf Left(Edges,3) = "Mod" Then
+               IsLblRow = CBool((i Mod Cint(Mid(Edges, 3))) = 0)
+            End If
+            ' move the existing shape accordingly
+            If LblIndex <= Labels.Count and IsLblRow = True Then
+                Labels(LblIndex).Cells("PinX").Formula = shp.Name & "!PinX + " & shp.Name & "!Scratch.X" & Cstr(i+1)
+                Labels(LblIndex).Cells("Geometry1.NoShow").Formula = shp.Name & "!" & shp.CellsSRC(visSectionScratch, i, VW_COL_LABEL_HIDE).Name
+                Labels(LblIndex).Text = Cstr(Index)
+                LblIndex = LblIndex + 1
+                Index = Index + 1
+            ' else create the shape
+            ElseIf IsLblRow = True Then
+                MakeLabel shp, CInt(i), Index
+                Index = Index + 1
+            End If
+        End If
+    Next i
+
+    If LblIndex > 1 Then
+        For i = Labels.Count to LblIndex Step -1
+            Labels(i).Delete
+        Next i
+    End If
+
+    Set Labels = Nothing
+
+    If Not win is Nothing Then
+        win.DeselectAll
+        For Each s in Selection
+            win.Select s, visSelect
+        Next
+    End If
+End Sub
+
+' this actually draws the label on the page
+Private Sub MakeLabel(shp as Shape, ScratchRow as Integer, Index as Integer)
+    Dim lbl as Shape
+
+    x1 = shp.Cells("PinX").Result("")
+    x2 = x1 + shp.Cells("Prop.LabelSize").Result("")
+    y1 = shp.Cells("PinY").Result("")
+    y2 = y1 + shp.Cells("Prop.LabelSize").Result("")
+
+    Set lbl = shp.Parent.DrawRectangle(x1, x2, y1, y2)
+
+    Select Case VW_LABEL_SHAPE
+     Case "Rectangle", "Square"
+     Case "RoundedRectangle", "RoundedSquare"
+        lbl.Cells("Rounding").Formula = "0.2 * Width"
+     Case "Diamond"
+        lbl.Cells("Angle").Formula = "45 deg"
+     Case "RoundedDiamond"
+        lbl.Cells("Angle").Formula = "45 deg"
+        lbl.Cells("Rounding").Formula = "0.2 * Width"
+     Case "Oval", "Circle"
+        lbl.Cells("Rounding").Formula = "0.5 * Width"
+    End Select
+
+    ' add user data
+    lbl.AddNamedRow visSectionUser, "Parent", visTagDefault
+    lbl.Cells("User.Parent").Formula = Chr(34) & shp.Name & Chr(34)
+    lbl.AddNamedRow visSectionUser, "Type", visTagDefault
+    '//TODO. Nodes share all of the same details except this field and Y postion
+    lbl.Cells("User.Type").Formula = """Label"""
+
+    ' transform the label
+    lbl.Cells("Width").Formula = shp.Name & "!Prop.LabelSize"
+    lbl.Cells("Height").Formula = shp.Name & "!Prop.LabelSize"
+    lbl.Cells("PinX").Formula = shp.Name & "!PinX + " & shp.Name & "!Scratch.X" & Cstr(ScratchRow+1)
+    '//TODO. Nodes do not share this position
+    lbl.Cells("PinY").Formula = shp.Name & "!PinY + " & shp.Name & "!Height + Height"
+    lbl.Cells("LocPinX").Formula = "Width*0.5"
+    lbl.Cells("LocPinY").Formula = "Height*0.5"
+
+    ' control visibility
+    lbl.Cells("Geometry1.NoShow").Formula = shp.Name & "!" & shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_LABEL_HIDE).Name
+    lbl.Cells("HideText").Formula = "Geometry1.NoShow"
+
+    CopyParentFeatures shp, lbl
+    lbl.Cells("TxtWidth").Formula = "(LEN(SHAPETEXT(TheText))+1 in)*Char.Size"
+    lbl.Cells("Char.Size").Formula = shp.Name & "!" & "Prop.LabelFont"
+    lbl.Text = Cstr(Index)
+    '//TODO. This does not work without sheet protection
+    lbl.Cells("LockSelect").Formula = True
+
+End Sub
+
+' makes a child shape copy certain features of the parent shape
+Public Sub CopyParentFeatures(Parent as Shape, Child as Shape)
+    Child.Cells("LinePattern").Formula = Parent.Name & "!LinePattern"
+    Child.Cells("LineWeight").Formula = Parent.Name & "!LineWeight"
+    Child.Cells("LineColor").Formula = Parent.Name & "!LineColor"
+    Child.Cells("Char.Size").Formula = Parent.Name & "!Char.Size"
+    Child.Cells("Char.Font").Formula = Parent.Name & "!Char.Font"
+    Child.Cells("Char.Color").Formula = Parent.Name & "!Char.Color"
+End Sub
