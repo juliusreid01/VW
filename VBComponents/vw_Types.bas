@@ -16,6 +16,7 @@ End Enum
 
 Public Enum EventType
     Edge  = 1
+    Node  = 7
     Delay = 2
     Gate0 = 3
     Gate1 = 4

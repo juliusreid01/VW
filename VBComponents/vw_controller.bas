@@ -23,9 +23,13 @@ Public Sub CellChanged(vsoCell as IVCell)
 
     ' global changes
     Select Case vsoCell.Name
+     Case "Prop.ActiveLow"
+        DoLabels shp
      Case "Prop.EventType"
         If vsoCell.ResultStr("") = "Node" Then
             shp.Cells("Prop.EventTrigger.Format").Formula = """Posedge;Negedge"""
+        ElseIf vsoCell.ResultStr("") = "Delay" Then
+            shp.Cells("Prop.EventTrigger.Format").Formula = """Pulse"""
         Else
             shp.Cells("Prop.EventTrigger.Format").Formula = """Absolute;Posedge;Negedge"""
         End If
@@ -48,7 +52,8 @@ Public Sub UpdateParents(Container as Variant)
     Dim shp as Shape
     ' if there are no shapes in the container it itself is the shape
     If Container.Shapes.Count = 0 Then
-        SetSignals Container
+        Set shp = Container
+        SetSignals shp
     Else
         For Each shp in Container.Shapes
             UpdateParents shp
@@ -84,25 +89,21 @@ Public Sub SetSignals(Child as Shape, Optional Mode as SignalType = SignalType.V
     vw_cfg.Configure
 
     For Each s in Child.ContainingPage.Shapes
-        If s.CellExists("User.Type", visExistsLocally) Then
-            If Mode = SignalType.Clock Then
-                If s.Cells("User.Type").ResultStr("") = VW_TYPE_STR(SignalType.Clock) and _
-                    s.Name <> Child.Name Then Parents = Parents & s.Name & ";"
-            ElseIf Mode = SignalType.Signal Then
-                If s.Cells("User.Type").ResultStr("") = VW_TYPE_STR(SignalType.Bit) and _
-                    s.Name <> Child.Name Then Parents = Parents & s.Name & ";"
-                '//TODO. How can a bus be a parent
-                'If s.Cells("User.Type").ResultStr("") = VW_TYPE_STR(SignalType.Bus) and _
-                '    s.Name <> Child.Name Then Parents = s.Name & ";"
+        If s.CellExists("User.Type", visExistsLocally) And s.Name <> Child.Name Then
+            If s.CellExists("Prop.Clock", visExistsLocally) = True Then
+                If s.Cells("Prop.Clock").ResultStr("") <> Child.Name And s.Cells("Prop.Signal").ResultStr("") <> Child.Name Then
+                    If Mode = SignalType.Clock Then
+                        If s.Cells("User.Type").ResultStr("") = VW_TYPE_STR(SignalType.Clock) Then Parents = Parents & s.Name & ";"
+                    ElseIf Mode = SignalType.Signal Then
+                        If s.Cells("User.Type").ResultStr("") = VW_TYPE_STR(SignalType.Bit) Then Parents = Parents & s.Name & ";"
+                        '//TODO. How can a bus be a parent
+                        'If s.Cells("User.Type").ResultStr("") = VW_TYPE_STR(SignalType.Bus) and _
+                        '    s.Name <> Child.Name Then Parents = s.Name & ";"
+                    End If
+                End If
             End If
         ElseIf s.Shapes.Count > 0 Then
-            If Mode = SignalType.Clock Then
-                Parents = Parents & GetShapes(SignalType.Clock, s, Child.Name)
-            ElseIf Mode = SignalType.Signal Then
-                Parents = Parents & GetShapes(SignalType.Bit, s, Child.Name)
-                '//TODO. How can a bus be a parent
-                'Parents = Parents & GetShapes(SignalType.Bus, s, Child.Name)
-            End If
+            Parents = Parents & GetShapes(Mode, s, Child.Name)
         End If
     Next
 
@@ -177,17 +178,12 @@ Public Sub DoLabels(Parent as Shape)
         If shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Result("") = EventType.Edge Then
             shp.CellsSRC(visSectionScratch, i, VW_COL_LABEL_HIDE).Formula = "STRSAME(Prop.LabelEdges,""None"")"
             IsLblRow = True
-            ' determine if this is a visible row
-            If (Edges = "Positive" And shp.Cells("Prop.ActiveLow").Result("") = False) Or _
-               (Edges = "Negative" And shp.Cells("Prop.ActiveLow").Result("") <> False) Then
-               IsLblRow = Cbool(((i+1) And 1) <> 0)
-            ElseIf (Edges = "Positive" And shp.Cells("Prop.ActiveLow").Result("") <> False) Or _
-               (Edges = "Negative" And shp.Cells("Prop.ActiveLow").Result("") = False) Then
-               IsLblRow = Cbool(((i+1) And 1) = 0)
-            ElseIf Edges = "None" Then
+            If Edges = "None" Then
                 IsLblRow = False
             ElseIf Left(Edges,3) = "Mod" Then
-               IsLblRow = CBool((i Mod Cint(Mid(Edges, 3))) = 0)
+                IsLblRow = CBool((i Mod Cint(Mid(Edges, 3))) = 0)
+            Else
+                IsLblRow = CBool((Edges = GetEdgeType(shp, CInt(i))) Or (Edges = "All"))
             End If
             ' move the existing shape accordingly
             If LblIndex <= Labels.Count and IsLblRow = True Then
@@ -219,6 +215,14 @@ Public Sub DoLabels(Parent as Shape)
         Next
     End If
 End Sub
+
+Public Function GetEdgeType(shp as Shape, Row as Integer) as String
+    If shp.Cells("Prop.ActiveLow").Result("") = False Then
+        GetEdgeType = IIf(shp.CellsSRC(visSectionScratch, Row, visY).Result("") > 0, "Positive", "Negative")
+    Else
+        GetEdgeType = IIf(shp.CellsSRC(visSectionScratch, Row, visY).Result("") > 0, "Negative", "Positive")
+    End If
+End Function
 
 ' this actually draws the label on the page
 Private Sub MakeLabel(shp as Shape, ScratchRow as Integer, Index as Integer)
@@ -264,7 +268,13 @@ Private Sub MakeLabel(shp as Shape, ScratchRow as Integer, Index as Integer)
     lbl.Cells("Geometry1.NoShow").Formula = shp.Name & "!" & shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_LABEL_HIDE).Name
     lbl.Cells("HideText").Formula = "Geometry1.NoShow"
 
-    CopyParentFeatures shp, lbl
+    lbl.Cells("LinePattern").Formula = shp.Name & "!LinePattern"
+    lbl.Cells("LineWeight").Formula = "0.24 pt"
+    lbl.Cells("LineColor").Formula = shp.Name & "!LineColor"
+    lbl.Cells("Char.Size").Formula = shp.Name & "!Prop.LabelFont"
+    lbl.Cells("Char.Font").Formula = shp.Name & "!Char.Font"
+    lbl.Cells("Char.Color").Formula = shp.Name & "!Char.Color"
+
     lbl.Cells("TxtWidth").Formula = "(LEN(SHAPETEXT(TheText))+1+" & VW_0 & ")*Char.Size"
     lbl.Cells("Char.Size").Formula = shp.Name & "!" & "Prop.LabelFont"
     lbl.Text = Cstr(Index)
