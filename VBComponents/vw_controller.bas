@@ -3,9 +3,36 @@ Attribute VB_Name = "vw_controller"
 Public Sub CellChanged(vsoCell as IVCell)
     Dim shp as Shape
     Dim clk as vw_Clock_c
+    Dim sig as vw_Signal_c
 
     vw_cfg.Configure
     Set shp = vsoCell.Shape
+
+    ' register the signal
+    If shp.CellExists("User.Type", visExistsLocally) = True Then
+        set sig = New vw_Signal_c
+        Select Case shp.Cells("User.Type").ResultStr("")
+         Case VW_TYPE_STR(SignalType.Clock)
+            sig.Register shp, SignalType.Clock
+         Case VW_TYPE_STR(SignalType.Bit)
+            sig.Register shp, SignalType.Bit
+         Case VW_TYPE_STR(SignalType.Bus)
+            sig.Register shp, SignalType.Bus
+        End Select
+    End If
+
+    ' global changes
+    Select Case vsoCell.Name
+     Case "Prop.EventType"
+        If vsoCell.ResultStr("") = "Node" Then
+            shp.Cells("Prop.EventTrigger.Format").Formula = """Posedge;Negedge"""
+        Else
+            shp.Cells("Prop.EventTrigger.Format").Formula = """Absolute;Posedge;Negedge"""
+        End If
+     Case "Prop.EventTrigger"
+     Case "Prop.LabelEdges"
+        If vsoCell.ResultStr("") <> "None" Then vw_controller.DoLabels shp
+    End Select
 
     If shp.CellExists("User.Type", visExistsLocally) = True Then
         Select Case shp.Cells("User.Type").ResultStr("")
@@ -17,7 +44,17 @@ Public Sub CellChanged(vsoCell as IVCell)
 End Sub
 
 ' refresh the parents of each shape
-
+Public Sub UpdateParents(Container as Variant)
+    Dim shp as Shape
+    ' if there are no shapes in the container it itself is the shape
+    If Container.Shapes.Count = 0 Then
+        SetSignals Container
+    Else
+        For Each shp in Container.Shapes
+            UpdateParents shp
+        Next
+    End If
+End Sub
 
 ' set the Prop.Clock.Format and Prop.Signal.Format fields to enable shape dependencies
 Public Sub SetSignals(Child as Shape, Optional Mode as SignalType = SignalType.Void)
@@ -142,9 +179,9 @@ Public Sub DoLabels(Parent as Shape)
             IsLblRow = True
             ' determine if this is a visible row
             If (Edges = "Positive" And shp.Cells("Prop.ActiveLow").Result("") = False) Or _
-               (Edges = "Negative" And shp.Cells("Prop.ActiveLow").Result("") = True) Then
+               (Edges = "Negative" And shp.Cells("Prop.ActiveLow").Result("") <> False) Then
                IsLblRow = Cbool(((i+1) And 1) <> 0)
-            ElseIf (Edges = "Positive" And shp.Cells("Prop.ActiveLow").Result("") = True) Or _
+            ElseIf (Edges = "Positive" And shp.Cells("Prop.ActiveLow").Result("") <> False) Or _
                (Edges = "Negative" And shp.Cells("Prop.ActiveLow").Result("") = False) Then
                IsLblRow = Cbool(((i+1) And 1) = 0)
             ElseIf Edges = "None" Then
@@ -228,7 +265,7 @@ Private Sub MakeLabel(shp as Shape, ScratchRow as Integer, Index as Integer)
     lbl.Cells("HideText").Formula = "Geometry1.NoShow"
 
     CopyParentFeatures shp, lbl
-    lbl.Cells("TxtWidth").Formula = "(LEN(SHAPETEXT(TheText))+1 in)*Char.Size"
+    lbl.Cells("TxtWidth").Formula = "(LEN(SHAPETEXT(TheText))+1+" & VW_0 & ")*Char.Size"
     lbl.Cells("Char.Size").Formula = shp.Name & "!" & "Prop.LabelFont"
     lbl.Text = Cstr(Index)
     '//TODO. This does not work without sheet protection

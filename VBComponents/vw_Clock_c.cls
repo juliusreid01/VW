@@ -55,7 +55,7 @@ Private Sub MyEvents()
     ' updates the scratch section with events
     Do While TestCell.Result("") < shp.Cells("Width").Result("")
         signal.SetRowXY TestCell.Formula, y, ScratchRow, visSectionScratch, visTagDefault
-        shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Formula = EventType.Edge                
+        shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Formula = EventType.Edge
         ScratchRow = ScratchRow + 1
         TestCell.Formula = "User.ActiveWidth+Scratch.X" & Cstr(ScratchRow)
         If (ScratchRow and 1) = 0 Then TestCell.Formula = "Prop.Period-" & TestCell.Formula
@@ -112,6 +112,7 @@ Private Sub Redraw(Optional Start as Integer = 0)
     Row = shp.RowCount(visSectionFirstComponent) - 1
     if shp.CellsSRC(visSectionFirstComponent, Row - 1, visX).Result("") = shp.CellsSRC(visSectionFirstComponent, Row, visX).Result("") then
         shp.DeleteRow visSectionFirstComponent, Row - 1
+        Row = Row - 1
     end if
 
     shp.CellsSRC(visSectionFirstComponent, Row, visY).Formula = "Geometry1.Y" & Cstr(Row - 1)
@@ -125,7 +126,13 @@ Public Sub CellChanged(vsoCell as IVCell)
     End If
 
     Select Case vsoCell.Name
-     Case "Width", "Prop.Period", "Prop.Delay"
+     Case "Prop.ActiveLow"
+        DoLabels shp
+     Case "Width"
+        signal.CleanUp
+        MyEvents
+        DoLabels shp
+     Case "Prop.Period", "Prop.Delay"
         signal.CleanUp
         MyEvents
      Case "Prop.Skew", "Prop.DutyCycle"
@@ -138,9 +145,6 @@ Public Sub CellChanged(vsoCell as IVCell)
                 vsoCell.Formula = 100 * vsoCell.Result(visUnitCodes.visPercent) & "%"
             end if
         End If
-     Case "Prop.Trigger"
-     Case "Prop.Events"
-     Case "Prop.LabelEdges"
-        If vsoCell.ResultStr("") <> "None" Then vw_controller.DoLabels shp
+     Case "Prop.EventPosition"
     End Select
 End Sub

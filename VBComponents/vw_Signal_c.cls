@@ -197,7 +197,7 @@ End Sub
 Private Sub SetDataTypes()
   shp.Cells("Prop.Name.Type").Formula = visPropTypeString
   shp.Cells("Prop.Clock.Type").Formula = visPropTypeListFix
-  shp.Cells("Prop.Signal.Type").Formula = visPropTypeListFix
+  shp.Cells("Prop.Signal.Type").Formula = visPropTypeListFixG
   if sType = SignalType.Clock or sType = SignalType.Bit then
     shp.Cells("Prop.ActiveLow.Type").Formula = visPropTypeBool
   end if
