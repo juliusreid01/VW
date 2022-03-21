@@ -17,6 +17,8 @@ Public Sub VBA_Reset()
     MyComponents.Add "vw_Signal_c", ".cls"
     MyComponents.Add "vw_Test", ".bas"
     MyComponents.Add "vw_Types", ".bas"
+    MyComponents.Add "vw_strings", ".bas"
+    MyComponents.Add "vw_shape_wrapper_c", ".cls"
 
     For Each vbComp in ThisDocument.VBProject.VBComponents
         ' modify the prefix here as well

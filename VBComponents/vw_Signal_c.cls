@@ -75,62 +75,62 @@ End Sub
 
 ' Add the User-defined Cells
 Private Sub AddUserCells()
-  shp.AddNamedRow visSectionUser, "Type", visTagDefault
-  shp.AddNamedRow visSectionUser, "ChildOffset", visTagDefault
+  shp.AddNamedRow visSectionUser, S_TYPE, visTagDefault
+  shp.AddNamedRow visSectionUser, S_CHILDOFFSET, visTagDefault
   if sType = SignalType.Bus or sType = SignalType.Bit then
-    shp.AddNamedRow visSectionUser, "BusWidth", visTagDefault
-    shp.AddNamedRow visSectionUser, "SkewWidth", visTagDefault
-    shp.AddNamedRow visSectionUser, "Edges", visTagDefault
+    shp.AddNamedRow visSectionUser, S_BUSWIDTH, visTagDefault
+    shp.AddNamedRow visSectionUser, S_SKEWWIDTH, visTagDefault
+    shp.AddNamedRow visSectionUser, S_EDGES, visTagDefault
   elseif sType = SignalType.Clock Then
-    shp.AddNamedRow visSectionUser, "ActiveWidth", visTagDefault
-    shp.AddNamedRow visSectionUser, "SkewWidth", visTagDefault
-    shp.AddNamedRow visSectionUser, "Pulses", visTagDefault
+    shp.AddNamedRow visSectionUser, S_ACTIVEWIDTH, visTagDefault
+    shp.AddNamedRow visSectionUser, S_SKEWWIDTH, visTagDefault
+    shp.AddNamedRow visSectionUser, S_PULSES, visTagDefault
   end if
-  shp.AddNamedRow visSectionUser, "Test", visTagDefault
+  shp.AddNamedRow visSectionUser, S_TEST, visTagDefault
 End Sub
 
 ' Set the User-defined Cells
 Private Sub SetUserCells()
-  shp.Cells("User.Type").Formula = chr(34) & VW_TYPE_STR(sType) & chr(34)
-  shp.Cells("User.ChildOffset").Formula = "BlockSizeY"
+  shp.Cells(User(S_TYPE)).Formula = chr(34) & VW_TYPE_STR(sType) & chr(34)
+  shp.Cells(User(S_CHILDOFFSET)).Formula = "BlockSizeY"
   if sType = SignalType.Clock then
-    shp.Cells("User.ActiveWidth").Formula = VW_0 & "+ (Prop.Period * Prop.DutyCycle)"
-    shp.Cells("User.SkewWidth").Formula = VW_0 & "+ (Prop.Skew * Prop.Period * 0.5)"
-    shp.Cells("User.Pulses").Formula = "CEILING((Width-Geometry1.X1)/Prop.Period)"
+    shp.Cells(User(S_ACTIVEWIDTH)).Formula = VW_0 & "+ (Prop.Period * Prop.DutyCycle)"
+    shp.Cells(User(S_SKEWWIDTH)).Formula = VW_0 & "+ (Prop.Skew * Prop.Period * 0.5)"
+    shp.Cells(User(S_PULSES)).Formula = "CEILING((Width-Geometry1.X1)/Prop.Period)"
   elseif sType = SignalType.Bit then
-    shp.Cells("User.BusWidth").Formula = 1
-    shp.Cells("User.Edges").Formula = False
+    shp.Cells(User(S_BUSWIDTH)).Formula = 1
+    shp.Cells(User(S_EDGES)).Formula = False
   elseif sType = SignalType.Bus then
-    shp.Cells("User.BusWidth").Formula = 8
-    shp.Cells("User.Edges").Formula = False
+    shp.Cells(User(S_BUSWIDTH)).Formula = 8
+    shp.Cells(User(S_EDGES)).Formula = False
   end if
-  shp.Cells("User.Test.Prompt").Formula = """Spare cell to test formulae and values"""
+  shp.Cells(User(S_TEST) & ".Prompt").Formula = """Spare cell to test formulae and values"""
 End Sub
 
 ' Add the Shape Data Cells
 Private Sub AddDataCells()
-  shp.AddNamedRow visSectionProp, "Name", visTagDefault
-  shp.Cells("Prop.Name.Verify").Formula = True
-  shp.AddNamedRow visSectionProp, "Clock", visTagDefault
-  shp.AddNamedRow visSectionProp, "Signal", visTagDefault
+  shp.AddNamedRow visSectionProp, S_NAME, visTagDefault
+  shp.Cells(Prop(S_NAME) & ".Verify").Formula = True
+  shp.AddNamedRow visSectionProp, S_CLOCK, visTagDefault
+  shp.AddNamedRow visSectionProp, S_SIGNAL, visTagDefault
   if sType = SignalType.Clock or sType = SignalType.Bit then
-    shp.AddNamedRow visSectionProp, "ActiveLow", visTagDefault
+    shp.AddNamedRow visSectionProp, S_ACTIVELOW, visTagDefault
   end if
   if sType = SignalType.Clock then
-    shp.AddNamedRow visSectionProp, "Period", visTagDefault
-    shp.AddNamedRow visSectionProp, "Skew", visTagDefault
+    shp.AddNamedRow visSectionProp, S_PERIOD, visTagDefault
+    shp.AddNamedRow visSectionProp, S_SKEW, visTagDefault
   end if
-  shp.AddNamedRow visSectionProp, "Delay", visTagDefault
+  shp.AddNamedRow visSectionProp, S_DELAY, visTagDefault
   if sType = SignalType.Clock then
-    shp.AddNamedRow visSectionProp, "DutyCycle", visTagDefault
-    shp.AddNamedRow visSectionProp, "SignalSkew", visTagDefault
+    shp.AddNamedRow visSectionProp, S_DUTYCYCLE, visTagDefault
+    shp.AddNamedRow visSectionProp, S_SIGNALSKEW, visTagDefault
   end if
-  shp.AddNamedRow visSectionProp, "EventType", visTagDefault
-  shp.AddNamedRow visSectionProp, "EventTrigger", visTagDefault
-  shp.AddNamedRow visSectionProp, "EventPosition", visTagDefault
-  shp.AddNamedRow visSectionProp, "LabelEdges", visTagDefault
-  shp.AddNamedRow visSectionProp, "LabelSize", visTagDefault
-  shp.AddNamedRow visSectionProp, "LabelFont", visTagDefault
+  shp.AddNamedRow visSectionProp, S_EVENTTYPE, visTagDefault
+  shp.AddNamedRow visSectionProp, S_EVENTTRIGGER, visTagDefault
+  shp.AddNamedRow visSectionProp, S_EVENTPOSITION, visTagDefault
+  shp.AddNamedRow visSectionProp, S_LABELEDGES, visTagDefault
+  shp.AddNamedRow visSectionProp, S_LABELSIZE, visTagDefault
+  shp.AddNamedRow visSectionProp, S_LABELFONT, visTagDefault
 End Sub
 
 ' Set the Shape Data Cell Defaults
@@ -138,107 +138,107 @@ Public Sub ResetData(Optional s as Shape = Nothing)
   if Not s Is Nothing then set shp = s
 
   if sType = SignalType.Clock or sType = SignalType.Bit then
-    shp.Cells("Prop.ActiveLow").Formula = False
+    shp.Cells(Prop(S_ACTIVELOW)).Formula = False
   end if
   if sType = SignalType.Clock then
-    shp.Cells("Prop.Period").Formula = "BlockSizeX*2"
-    shp.Cells("Prop.Skew").Formula = "10 %"
-    shp.Cells("Prop.Delay").Formula = "BlockSizeX*0.5"
-    shp.Cells("Prop.DutyCycle").Formula = "50 %"
-    shp.Cells("Prop.SignalSkew").Formula = "BlockSizeX*0.1"
+    shp.Cells(Prop(S_PERIOD)).Formula = "BlockSizeX*2"
+    shp.Cells(Prop(S_SKEW)).Formula = "10 %"
+    shp.Cells(Prop(S_DELAY)).Formula = "BlockSizeX*0.5"
+    shp.Cells(Prop(S_DUTYCYCLE)).Formula = "50 %"
+    shp.Cells(Prop(S_SIGNALSKEW)).Formula = "BlockSizeX*0.1"
   else
-    shp.Cells("Prop.Delay").Formula = 0
+    shp.Cells(Prop(S_DELAY)).Formula = 0
   end if
-  shp.Cells("Prop.EventType").Formula = "Index(0, Prop.EventType.Format)"
-  shp.Cells("Prop.LabelEdges").Formula = "Index(0,Prop.LabelEdges.Format)"
-  shp.Cells("Prop.LabelSize").Formula = "BlockSizeX*0.667"
-  shp.Cells("Prop.LabelFont").Formula = "8 pt"
+  shp.Cells(Prop(S_EVENTTYPE)).Formula = "Index(0, Prop.EventType.Format)"
+  shp.Cells(Prop(S_LABELEDGES)).Formula = "Index(0,Prop.LabelEdges.Format)"
+  shp.Cells(Prop(S_LABELSIZE)).Formula = "BlockSizeX*0.667"
+  shp.Cells(Prop(S_LABELFONT)).Formula = "8 pt"
 End Sub
 
 ' Set the Shape Data Cell Prompts
 Private Sub SetDataPrompts()
-  shp.Cells("Prop.Name.Prompt").Formula = """Signal Name"""
-  shp.Cells("Prop.Clock.Prompt").Formula = """Reference Clock"""
-  shp.Cells("Prop.Signal.Prompt").Formula = """Reference Signal"""
+  shp.Cells(Prop(S_NAME) & ".Prompt").Formula = """Signal Name"""
+  shp.Cells(Prop(S_CLOCK) & ".Prompt").Formula = """Reference Clock"""
+  shp.Cells(Prop(S_SIGNAL) & ".Prompt").Formula = """Reference Signal"""
   if sType = SignalType.Clock then
-    shp.Cells("Prop.Skew.Prompt").Formula = """Percentage of period/2 to delay transitions"""
-    shp.Cells("Prop.Delay.Prompt").Formula = """Initial clock delay"""
-    shp.Cells("Prop.SignalSkew.Prompt").Formula = """Amount of skew to apply to dependent signals"""
+    shp.Cells(Prop(S_SKEW) & ".Prompt").Formula = """Percentage of period/2 to delay transitions"""
+    shp.Cells(Prop(S_DELAY) & ".Prompt").Formula = """Initial clock delay"""
+    shp.Cells(Prop(S_SIGNALSKEW) & ".Prompt").Formula = """Amount of skew to apply to dependent signals"""
   else
-    shp.Cells("Prop.Delay.Prompt").Formula = """Amount of delay before each transition"""
+    shp.Cells(Prop(S_DELAY) & ".Prompt").Formula = """Amount of delay before each transition"""
   end if
-  shp.Cells("Prop.EventType.Prompt").Formula = """Select an event type to add/modify"""
-  shp.Cells("Prop.EventTrigger.Prompt").Formula = """Input the trigger type for this event e.g. Posedge"""
-  shp.Cells("Prop.EventPosition.Prompt").Formula = """Input the position based on the trigger"""
-  shp.Cells("Prop.LabelEdges.Prompt").Formula = """Select which labels to show on transitions"""
+  shp.Cells(Prop(S_EVENTTYPE) & ".Prompt").Formula = """Select an event type to add/modify"""
+  shp.Cells(Prop(S_EVENTTRIGGER) & ".Prompt").Formula = """Input the trigger type for this event e.g. Posedge"""
+  shp.Cells(Prop(S_EVENTPOSITION) & ".Prompt").Formula = """Input the position based on the trigger"""
+  shp.Cells(Prop(S_LABELEDGES) & ".Prompt").Formula = """Select which labels to show on transitions"""
 End Sub
 
 ' Set the Shape Data Cell Labels
 Private Sub SetDataLabels()
   If sType = SignalType.Bit or sType = SignalType.Clock Then
-    shp.Cells("Prop.ActiveLow.Label").Formula = """Active Low"""
+    shp.Cells(Prop(S_ACTIVELOW) & ".Label").Formula = S_LABEL_ACTIVELOW
   end if
   if sType = SignalType.Clock then
-    shp.Cells("Prop.Skew.Label").Formula = """Skew %"""
-    shp.Cells("Prop.SignalSkew.Label").Formula = """Signal Skew"""
-    shp.Cells("Prop.DutyCycle.Label").Formula = """Duty Cycle %"""
+    shp.Cells(Prop(S_SKEW) & ".Label").Formula = S_LABEL_SKEW
+    shp.Cells(Prop(S_SIGNALSKEW) & ".Label").Formula = S_LABEL_SIGNALSKEW
+    shp.Cells(Prop(S_DUTYCYCLE) & ".Label").Formula = S_LABEL_DUTYCYCLE
   end if
-  shp.Cells("Prop.LabelEdges.Label").Formula = """Label Edges"""
-  shp.Cells("Prop.LabelSize.Label").Formula = """Label Size"""
-  shp.Cells("Prop.LabelFont.Label").Formula = """Label Font Pt"""
-  shp.Cells("Prop.EventType.Label").Formula = """Event Type"""
-  shp.Cells("Prop.EventTrigger.Label").Formula = """Trigger"""
-  shp.Cells("Prop.EventPosition.Label").Formula = """Position"""
+  shp.Cells(Prop(S_LABELEDGES) & ".Label").Formula = S_LABEL_LABELEDGES
+  shp.Cells(Prop(S_LABELSIZE) & ".Label").Formula = S_LABEL_LABELSIZE
+  shp.Cells(Prop(S_LABELFONT) & ".Label").Formula = S_LABEL_LABELFONT
+  shp.Cells(Prop(S_EVENTTYPE) & ".Label").Formula = S_LABEL_EVENTTYPE
+  shp.Cells(Prop(S_EVENTTRIGGER) & ".Label").Formula = S_LABEL_EVENTTRIGGER
+  shp.Cells(Prop(S_EVENTPOSITION) & ".Label").Formula = S_LABEL_EVENTPOSITION
 End Sub
 
 ' Set the Shape Data Cell Types
 Private Sub SetDataTypes()
-  shp.Cells("Prop.Name.Type").Formula = visPropTypeString
-  shp.Cells("Prop.Clock.Type").Formula = visPropTypeListFix
-  shp.Cells("Prop.Signal.Type").Formula = visPropTypeListFixG
+  shp.Cells(Prop(S_NAME) & ".Type").Formula = visPropTypeString
+  shp.Cells(Prop(S_CLOCK) & ".Type").Formula = visPropTypeListFix
+  shp.Cells(Prop(S_SIGNAL) & ".Type").Formula = visPropTypeListFixG
   if sType = SignalType.Clock or sType = SignalType.Bit then
     shp.Cells("Prop.ActiveLow.Type").Formula = visPropTypeBool
   end if
   if sType = SignalType.Clock then
-    shp.Cells("Prop.Period.Type").Formula = visPropTypeNumber
-    shp.Cells("Prop.Skew.Type").Formula = visPropTypeNumber
+    shp.Cells(Prop(S_PERIOD) & ".Type").Formula = visPropTypeNumber
+    shp.Cells(Prop(S_SKEW) & ".Type").Formula = visPropTypeNumber
   end if
-  shp.Cells("Prop.Delay.Type").Formula = visPropTypeNumber
+  shp.Cells(Prop(S_DELAY) & ".Type").Formula = visPropTypeNumber
   if sType = SignalType.Clock then
-    shp.Cells("Prop.DutyCycle.Type").Formula = visPropTypeNumber
-    shp.Cells("Prop.SignalSkew.Type").Formula = visPropTypeNumber
+    shp.Cells(Prop(S_DUTYCYCLE) & ".Type").Formula = visPropTypeNumber
+    shp.Cells(Prop(S_SIGNALSKEW) & ".Type").Formula = visPropTypeNumber
   end if
-  shp.Cells("Prop.EventType.Type").Formula = visPropTypeListFix
-  shp.Cells("Prop.EventTrigger.Type").Formula = visPropTypeListFix
-  shp.Cells("Prop.EventPosition.Type").Formula = visPropTypeNumber
-  shp.Cells("Prop.LabelEdges.Type").Formula = visPropTypeListVar
-  shp.Cells("Prop.LabelSize.Type").Formula = visPropTypeNumber
-  shp.Cells("Prop.LabelFont.Type").Formula = visPropTypeNumber
+  shp.Cells(Prop(S_EVENTTYPE) & ".Type").Formula = visPropTypeListFix
+  shp.Cells(Prop(S_EVENTTRIGGER) & ".Type").Formula = visPropTypeListFix
+  shp.Cells(Prop(S_EVENTPOSITION) & ".Type").Formula = visPropTypeNumber
+  shp.Cells(Prop(S_LABELEDGES) & ".Type").Formula = visPropTypeListVar
+  shp.Cells(Prop(S_LABELSIZE) & ".Type").Formula = visPropTypeNumber
+  shp.Cells(Prop(S_LABELFONT) & ".Type").Formula = visPropTypeNumber
 End Sub
 
 ' Set the Shape Data Cell Formats
 Private Sub SetDataFormats()
   if sType = SignalType.Clock then
-    shp.Cells("Prop.Period.Format").Formula = """0.00 u"""
-    shp.Cells("Prop.Skew.Format").Formula = """0.0 u"""
-    shp.Cells("Prop.SignalSkew.Format").Formula = """0.000 u"""
-    shp.Cells("Prop.DutyCycle.Format").Formula = """0.0 u"""
-    shp.Cells("Prop.LabelEdges.Format").Formula = """None;Positive;Negative;All"""
-    shp.Cells("Prop.EventType.Format").Formula = """;Delay;Node;GateX;GateZ;Gate0;Gate1"""
+    shp.Cells(Prop(S_PERIOD) & ".Format").Formula = """0.00 u"""
+    shp.Cells(Prop(S_SKEW) & ".Format").Formula = """0.0 u"""
+    shp.Cells(Prop(S_SIGNALSKEW) & ".Format").Formula = """0.000 u"""
+    shp.Cells(Prop(S_DUTYCYCLE) & ".Format").Formula = """0.0 u"""
+    shp.Cells(Prop(S_LABELEDGES) & ".Format").Formula = """None;Positive;Negative;All"""
+    shp.Cells(Prop(S_EVENTTYPE) & ".Format").Formula = """;Delay;Node;GateX;GateZ;Gate0;Gate1"""
   end if
-  shp.Cells("Prop.LabelFont.Format").Formula = """0 u"""
-  shp.Cells("Prop.Delay.Format").Formula = """0.000 u"""
-  shp.Cells("Prop.EventTrigger.Format").Formula = """Absolute;Posedge;Negedge"""
+  shp.Cells(Prop(S_LABELFONT) & ".Format").Formula = """0 u"""
+  shp.Cells(Prop(S_DELAY) & ".Format").Formula = """0.000 u"""
+  shp.Cells(Prop(S_EVENTTRIGGER) & ".Format").Formula = """Absolute;Posedge;Negedge"""
 End Sub
 
 ' Set the Shape Data Cells Invisible field
 Private Sub SetDataHidden()
-  shp.Cells("Prop.Clock.Invisible").Formula = "STRSAME("""", Prop.Clock.Format)"
-  shp.Cells("Prop.Signal.Invisible").Formula = "STRSAME("""", Prop.Signal.Format)"
-  shp.Cells("Prop.LabelSize.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges, TRUE))"
-  shp.Cells("Prop.LabelFont.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges, TRUE))"
-  shp.Cells("Prop.EventTrigger.Invisible").Formula = "STRSAME("""", Prop.EventType)"
-  shp.Cells("Prop.EventPosition.Invisible").Formula = "STRSAME("""", Prop.EventType)"
+  shp.Cells(Prop(S_CLOCK) & ".Invisible").Formula = "STRSAME("""", Prop.Clock.Format)"
+  shp.Cells(Prop(S_SIGNAL) & ".Invisible").Formula = "STRSAME("""", Prop.Signal.Format)"
+  shp.Cells(Prop(S_LABELSIZE) & ".Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges, TRUE))"
+  shp.Cells(Prop(S_LABELFONT) & ".Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges, TRUE))"
+  shp.Cells(Prop(S_EVENTTRIGGER) & ".Invisible").Formula = "STRSAME("""", Prop.EventType)"
+  shp.Cells(Prop(S_EVENTPOSITION) & ".Invisible").Formula = "STRSAME("""", Prop.EventType)"
 End Sub
 
 ' Reset the Visio Shape Data
@@ -635,15 +635,15 @@ Private Sub MakeLabel(ScratchRow as Integer, Index as Integer)
   Set lbl = ModifyNode(ScratchRow, True)
 
   Select Case VW_LABEL_SHAPE
-   Case "Rectangle", "Square"
-   Case "RoundedRectangle", "RoundedSquare"
+   Case S_LBL_RECTANGLE, S_LBL_SQUARE
+   Case S_LBL_RND_RECTANGLE, S_LBL_RND_SQUARE
     lbl.Cells("Rounding").Formula = "0.2 * Width"
-   Case "Diamond"
+   Case S_LBL_DIAMOND
     lbl.Cells("Angle").Formula = "45 deg"
-   Case "RoundedDiamond"
+   Case S_LBL_RND_DIAMOND
     lbl.Cells("Angle").Formula = "45 deg"
     lbl.Cells("Rounding").Formula = "0.2 * Width"
-   Case "Oval", "Circle"
+   Case S_LBL_OVAL, S_LBL_CIRCLE
     lbl.Cells("Rounding").Formula = "0.5 * Width"
   End Select
 
