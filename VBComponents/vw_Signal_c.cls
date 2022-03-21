@@ -13,8 +13,6 @@ Attribute VB_Exposed = False
 Private shp as Shape
 ' the type of signal
 Private sType as SignalType
-' index of the current label
-Private LabelIdx as Integer
 
 Private Sub Class_Initialize()
   vw_cfg.Configure
@@ -237,8 +235,8 @@ End Sub
 Private Sub SetDataHidden()
   shp.Cells("Prop.Clock.Invisible").Formula = "STRSAME("""", Prop.Clock.Format)"
   shp.Cells("Prop.Signal.Invisible").Formula = "STRSAME("""", Prop.Signal.Format)"
-  shp.Cells("Prop.LabelSize.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges))"
-  shp.Cells("Prop.LabelFont.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges))"
+  shp.Cells("Prop.LabelSize.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges, TRUE))"
+  shp.Cells("Prop.LabelFont.Invisible").Formula = "OR(Prop.LabelEdges.Invisible, STRSAME(""None"", Prop.LabelEdges, TRUE))"
   shp.Cells("Prop.EventTrigger.Invisible").Formula = "STRSAME("""", Prop.EventType)"
   shp.Cells("Prop.EventPosition.Invisible").Formula = "STRSAME("""", Prop.EventType)"
 End Sub
@@ -277,18 +275,36 @@ Public Sub ResetVisioData(Optional s as Shape = Nothing)
   shp.Cells("Geometry1.NoFill").Formula = False
 End Sub
 
+' delete the shapes children
+Public Sub DeleteChildren(ParentName as String, Parent as Variant, EndX as Double)
+  For Each s in Parent.Shapes
+    If s.Shapes.Count > 0 Then
+      DeleteChildren ParentName, s, EndX
+    ElseIf s.CellExists("User.Parent", visExistsLocally) = True Then
+      If s.Cells("User.Parent").ResultStr("") = ParentName And _
+        s.Cells("PinX").Result("") >= EndX Then s.Delete
+    End If
+  Next
+End Sub
+
+' delete the child at the position X, Y
+Public Sub DeleteChildAt(X as Double, Y as Double, ParentName as String, Parent as Variant)
+  For Each s in Parent.Shapes
+    If s.Shapes.Count > 0 Then
+      DeleteChildAt X, Y, ParentName, s
+    ElseIf s.CellExists("User.Parent", visExistsLocally) = True Then
+      If s.Cells("User.Parent").ResultStr("") = ParentName And _
+        s.Cells("PinX").Result("") = X And s.Cells("PinY").Result("") = Y Then s.Delete
+    End If
+  Next
+End Sub
+
 ' Reset the shape geometry
 Public Sub ResetGeometry(Optional s as Shape = Nothing)
   if Not s is Nothing then set shp = s
 
   shp.DeleteSection visSectionConnectionPts
-
-  For i = 0 to shp.RowCount(visSectionScratch) - 1
-    For Each s In shp.ContainingPage.Shapes
-      If s.Name = shp.CellsSRC(visSectionScratch, i, VW_COL_LABEL_NAME).ResultStr("") Then s.Delete
-    Next
-  Next i
-
+  DeleteChildren shp.Name, shp.ContainingPage, shp.Cells("PinX").Result("")
   shp.DeleteSection visSectionScratch
 
   Do While shp.GeometryCount > 1
@@ -406,16 +422,13 @@ Public Sub CleanUp()
   Dim GeoCnt as Integer
 
   GeoCnt = 1
-
   If sType = SignalType.Bus Then GeoCnt = 2
 
+  ' delete children >= Width
+  DeleteChildren shp.Name, shp.ContainingPage, shp.Cells("EndX").Result("")
   ' delete events >= Width
   for i = shp.RowCount(visSectionScratch) - 1 to 0 Step -1
     if shp.CellsSRC(visSectionScratch, i, visScratchX).Result("") >= shp.Cells("Width") Then
-      for each s in shp.ContainingPage.Shapes
-        if s.Name = shp.CellsSRC(visSectionScratch, visRowLast, VW_COL_LABEL_NAME).ResultStr("") _
-        or s.Name = shp.CellsSRC(visSectionScratch, visRowLast, VW_COL_NODE_NAME).ResultStr("") Then s.Delete
-      Next
       shp.DeleteSection visSectionFirstComponent + GeoCnt + i
       shp.DeleteRow visSectionScratch, i
     end if
@@ -437,4 +450,223 @@ Public Sub CleanUp()
     end if
   Next i
 
+End Sub
+
+' get existing labels
+Private Sub GetLabels(ByRef Labels as Collection, Parent as Variant)
+  For Each s in Parent.Shapes
+    If s.Shapes.Count = 0 And s.CellExists("User.Parent", visExistsLocally) = True Then
+      If s.Cells("User.Parent").ResultStr("") = shp.Name And s.Cells("User.Type").ResultStr("") = "Label" Then Labels.Add s
+    ElseIf s.Shapes.Count > 0 Then
+      GetLabels Labels, s
+    End If
+  Next
+End Sub
+
+Private Function GetEdgeType(Row as Integer) as String
+  If shp.Cells("Prop.ActiveLow").Result("") = False Then
+    GetEdgeType = IIf(shp.CellsSRC(visSectionScratch, Row, visY).Result("") > 0, "Positive", "Negative")
+  Else
+    GetEdgeType = IIf(shp.CellsSRC(visSectionScratch, Row, visY).Result("") > 0, "Negative", "Positive")
+  End If
+End Function
+
+'//TODO. what is making this process so slow for All
+' handle the labels of the shape
+Public Sub DoLabels()
+  ' collection of labels that may or may not exists
+  Dim Labels as Collection
+  Dim Index as Integer
+  Dim LblIndex as Integer
+  Dim IsLblRow as Boolean
+  Dim Edges as String
+  Dim win as Window
+  Dim Selection as Collection
+  Dim iPos as Integer
+  Dim iNeg as Integer
+  Dim CurEdge as String
+
+  ' get the window for selection
+  For Each w in Application.Windows
+    If w.Page = shp.ContainingPage And w.Shape.Type = visTypePage Then Set win = w
+  Next
+
+  ' get the selected shapes
+  If Not win is Nothing Then
+    Set Selection = New Collection
+    For Each s in win.selection
+      Selection.Add s
+    Next
+  End If
+
+  Set Labels = New Collection
+  GetLabels Labels, shp.ContainingPage
+
+  vw_cfg.Configure
+  Index = VW_LABEL_INDEX0
+  LblIndex = 1
+  Edges = LCase(shp.Cells("Prop.LabelEdges").ResultStr(""))
+  ' determine which of the scratch rows should have labels
+  For i = 0 to shp.RowCount(visSectionScratch) - 1
+    If shp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Result("") = EventType.Edge Then
+      shp.CellsSRC(visSectionScratch, i, VW_COL_LABEL_HIDE).Formula = "STRSAME(Prop.LabelEdges,""None"", True)"
+      ' count positive and negative for pos# and neg#
+      CurEdge = GetEdgeType(CInt(i))
+      If CurEdge = "Positive" Then
+        iPos = iPos + 1
+      Else
+        iNeg = iNeg + 1
+      End If
+
+      ' decide if a label should be shown
+      If Edges = "none" Then
+        IsLblRow = False
+      ElseIf CurEdge = "Positive" And Left(Edges,3) = "pos" And IsNumeric(Mid(Edges,4)) Then
+        IsLblRow = CBool(((iPos-1) Mod Cint(Mid(Edges, 4))) = 0)
+      ElseIf CurEdge = "Positive" And Left(Edges,1) = "p" And IsNumeric(Mid(Edges,2)) Then
+        IsLblRow = CBool(((iPos-1) Mod Cint(Mid(Edges, 2))) = 0)
+      ElseIf CurEdge = "Negative" And Left(Edges,3) = "neg" And IsNumeric(Mid(Edges,4)) Then
+        IsLblRow = CBool(((iNeg-1) Mod Cint(Mid(Edges, 4))) = 0)
+      ElseIf CurEdge = "Negative" And Left(Edges,1) = "n" And IsNumeric(Mid(Edges,2)) Then
+        IsLblRow = CBool(((iNeg-1) Mod Cint(Mid(Edges, 2))) = 0)
+      ElseIf Left(Edges,3) = "mod" And IsNumeric(Mid(Edges,4)) Then
+        IsLblRow = CBool((i Mod Cint(Mid(Edges, 4))) = 0)
+      ElseIf Left(Edges,1) = "m" And IsNumeric(Mid(Edges,2)) Then
+        IsLblRow = CBool((i Mod Cint(Mid(Edges, 2))) = 0)
+      Else
+        IsLblRow = CBool((Edges = LCase(CurEdge)) Or (Edges = "all"))
+      End If
+
+      ' move the existing shape accordingly
+      If LblIndex <= Labels.Count and IsLblRow = True Then
+        Labels(LblIndex).Cells("PinX").Formula = shp.Name & "!PinX + " & shp.Name & "!Scratch.X" & Cstr(i+1)
+        Labels(LblIndex).Cells("Geometry1.NoShow").Formula = shp.Name & "!" & shp.CellsSRC(visSectionScratch, i, VW_COL_LABEL_HIDE).Name
+        Labels(LblIndex).Text = Cstr(Index)
+        LblIndex = LblIndex + 1
+        Index = Index + 1
+      ' else create the shape
+      ElseIf IsLblRow = True Then
+        MakeLabel CInt(i), Index
+        Index = Index + 1
+      End If
+    End If
+  Next i
+
+  ' delete the excess labels
+  If LblIndex > 1 Then
+    For i = Labels.Count to LblIndex Step -1
+      Labels(i).Delete
+    Next i
+  End If
+  Set Labels = Nothing
+
+  ' restore the original selection
+  If Not win is Nothing Then
+    win.DeselectAll
+    For Each s in Selection
+      win.Select s, visSelect
+    Next
+  End If
+End Sub
+
+'//TODO. incomplete function
+' add/remove a node on the shape
+Private Function ModifyNode(ScratchRow as Integer, Optional Boolean as ForLabel = False) as Shape
+  Dim Node as Shape
+  Dim x1 as Double
+  Dim x2 as Double
+  Dim y1 as Double
+  Dim y2 as Double
+
+  ' create a new row for this node
+  If ForLabel = False Then
+    If shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_NODE_EXISTS) = False Then
+      shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_NODE_EXISTS) = True
+
+    ' if the row exists we want to delete this node
+    ElseIf shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_NODE_EXISTS).Result("") <> False Then
+      shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_NODE_EXISTS) = False
+      x1 = shp.Cells("PinX").Result("") + shp.CellsSRC(visSectionScratch, ScratchRow, visX).Result("")
+      y1 = shp.Cells("PinY").Result("") + shp.Cells("Height*0.5")
+      DeleteChildAt x1, y1, shp.Name, shp.ContainingPage
+      Exit Function
+
+    End If
+  End If
+
+  x1 = shp.Cells("PinX").Result("")
+  x2 = x1 + shp.Cells("Prop.LabelSize").Result("")
+  y1 = shp.Cells("PinY").Result("")
+  y2 = y1 + shp.Cells("Prop.LabelSize").Result("")
+
+  Set Node = shp.Parent.DrawRectangle(x1, x2, y1, y2)
+
+  Node.Cells("Rounding").Formula = "0.5*Width"
+  ' add user data
+  Node.AddNamedRow visSectionUser, "Parent", visTagDefault
+  Node.Cells("User.Parent").Formula = Chr(34) & shp.Name & Chr(34)
+  Node.AddNamedRow visSectionUser, "Type", visTagDefault
+  Node.Cells("User.Type").Formula = """Node"""
+  ' transform the label
+  Node.Cells("Width").Formula = shp.Name & "!Prop.LabelSize*0.75"
+  Node.Cells("Height").Formula = shp.Name & "!Prop.LabelSize*0.75"
+  Node.Cells("PinX").Formula = shp.Name & "!PinX+" & shp.Name & "!Scratch.X" & Cstr(ScratchRow+1)
+  Node.Cells("PinY").Formula = shp.Name & "!PinY+" & shp.Name & "!Scratch.Y" & CStr(ScratchRow+1)
+  Node.Cells("LocPinX").Formula = "Width*0.5"
+  Node.Cells("LocPinY").Formula = "Height*0.5"
+
+  ' line and character
+  Node.Cells("LinePattern").Formula = 1
+  Node.Cells("LineColor").Formula = 0
+  Node.Cells("LineWeight").Formula = "0.12 pt"
+  Node.Cells("Char.Size").Formula = shp.Name & "!Prop.LabelFont*0.75"
+  Node.Cells("Char.Font").Formula = shp.Name & "!Char.Font"
+  Node.Cells("Char.Color").Formula = shp.Name & "!Char.Color"
+
+  Node.Cells("TxtWidth").Formula = "(LEN(SHAPETEXT(TheText))+1+" & VW_0 & ")*Char.Size"
+  'Node.Text = Cstr(Index)
+
+  Set ModifyNode = Node
+End Function
+
+' this actually draws the label on the page
+Private Sub MakeLabel(ScratchRow as Integer, Index as Integer)
+  Dim lbl as Shape
+  Set lbl = ModifyNode(ScratchRow, True)
+
+  Select Case VW_LABEL_SHAPE
+   Case "Rectangle", "Square"
+   Case "RoundedRectangle", "RoundedSquare"
+    lbl.Cells("Rounding").Formula = "0.2 * Width"
+   Case "Diamond"
+    lbl.Cells("Angle").Formula = "45 deg"
+   Case "RoundedDiamond"
+    lbl.Cells("Angle").Formula = "45 deg"
+    lbl.Cells("Rounding").Formula = "0.2 * Width"
+   Case "Oval", "Circle"
+    lbl.Cells("Rounding").Formula = "0.5 * Width"
+  End Select
+
+  ' add user data
+  lbl.Cells("User.Type").Formula = """Label"""
+
+  ' transform the label
+  lbl.Cells("Width").Formula = shp.Name & "!Prop.LabelSize"
+  lbl.Cells("Height").Formula = shp.Name & "!Prop.LabelSize"
+  lbl.Cells("PinX").Formula = shp.Name & "!PinX + " & shp.Name & "!Scratch.X" & Cstr(ScratchRow+1)
+  lbl.Cells("PinY").Formula = shp.Name & "!PinY + " & shp.Name & "!Height + Height"
+
+  ' control visibility
+  lbl.Cells("Geometry1.NoShow").Formula = shp.Name & "!" & shp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_LABEL_HIDE).Name
+  lbl.Cells("HideText").Formula = "Geometry1.NoShow"
+  lbl.Cells("Char.Size").Formula = shp.Name & "!" & "Prop.LabelFont"
+
+  ' line and character
+  lbl.Cells("LinePattern").Formula = shp.Name & "!LinePattern"
+  lbl.Cells("LineColor").Formula = shp.Name & "!LineColor"
+  lbl.Cells("LineWeight").Formula = "0.24 pt"
+
+  lbl.Text = Cstr(Index)
+  '//TODO. This does not work without sheet protection
+  lbl.Cells("LockSelect").Formula = True
 End Sub

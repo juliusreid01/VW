@@ -11,3 +11,4 @@ Application.VBE.ActiveVBProject.VBComponents.Import "D:\VW\vw_Test.bas"
 Application.VBE.ActiveVBProject.VBComponents.Import "D:\VW\vw_Types.bas"
 
 vw_controller.CellChanged ActivePage.Shapes("Sheet.1").Cells("Width")
+

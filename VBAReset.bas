@@ -34,6 +34,11 @@ Public Sub VBA_Reset()
         End If
     Next
 
+    If ThisDocument.VBProject.VBComponents.Count > 2 Then
+        VBA_Reset
+        Exit Sub
+    End If
+
     For Each key in MyComponents.Keys
         Application.VBE.ActiveVBProject.VBComponents.Import VW_HOME & key & MyComponents.Item(key)
     Next

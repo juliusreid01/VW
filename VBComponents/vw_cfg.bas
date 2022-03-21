@@ -23,14 +23,13 @@ Public Const VW_BUS_YANCHOR as Integer = visAlignBottom
 
 Public Const VW_COL_EVENT_TYPE as Integer = visScratchA
 Public Const VW_COL_LABEL_HIDE as Integer = visScratchB
-Public Const VW_COL_NODE_NAME as Integer = visScratchC
-'Public Const VW_COL_EVENT_SHOW as Integer = visScratchD
+Public Const VW_COL_NODE_EXISTS as Integer = visScratchC
 
 ' configure the defaults call before using them
 Public Sub Configure()
-    VW_WIDTH = 3
-    VW_HEIGHT = ActiveWindow.Shape.Cells("BlockSizeY").Result("")
-    VW_TYPE_STR(SignalType.Clock) = "Clock"
-    VW_TYPE_STR(SignalType.Bit) = "Bit"
-    VW_TYPE_STR(SignalType.Bus) = "Bus"
+  VW_WIDTH = 3
+  VW_HEIGHT = ActiveWindow.Shape.Cells("BlockSizeY").Result("")
+  VW_TYPE_STR(SignalType.Clock) = "Clock"
+  VW_TYPE_STR(SignalType.Bit) = "Bit"
+  VW_TYPE_STR(SignalType.Bus) = "Bus"
 End Sub
