@@ -1,4 +1,4 @@
-Attribute VB_Name = "vw_Test"
+Attribute VB_Name = "vw_test"
 
 '//TODO. a test should draw signals manually and then compare geometry of the drawn shapes
 Private Const TEST_X as Double = 0.5
