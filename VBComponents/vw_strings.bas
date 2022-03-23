@@ -9,6 +9,7 @@ Public Const S_EDGES as String = "Edges"
 Public Const S_ACTIVEWIDTH as String = "ActiveWidth"
 Public Const S_PULSES as String = "Pulses"
 Public Const S_TEST as String = "Test"
+Public Const S_PARENT as String = "Parent"
 
 ' data cell strings
 Public Const S_NAME as String = "Name"
@@ -48,13 +49,3 @@ Public Const S_LBL_RND_SQUARE as String = "RoundedSquare"
 Public Const S_LBL_RND_DIAMOND as String = "RoundedDiamond"
 Public Const S_LBL_OVAL as String = "Oval"
 Public Const S_LBL_CIRCLE as String = "Circle"
-
-
-Public Function User(s as String) as String
-  User = "User." & s
-End Function
-
-Public Function Prop(s as String) as String
-  Prop = "Prop." & s
-End Function
-
