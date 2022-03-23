@@ -4,7 +4,7 @@ import re
 
 print("Hello World")
 files = []
-ignore = ['ThisDocument', 'VBAReset', 'vw_base_signal_c', 'vw_err']
+ignore = ['ThisDocument', 'VBAReset', 'Test', 'vw_base_signal_c', 'vw_err']
 
 def GetComps(path):
     for f in listdir(path):
@@ -30,8 +30,11 @@ for f in files:
     fout.write("  MyComponents.Add \"" + f + "\"\n")
 fout.write("  Do While ThisDocument.VBProject.VBComponents.Count > 2\n")
 fout.write("    For Each vbComp in ThisDocument.VBProject.VBComponents\n")
-fout.write("      If Left$(vbComp.Name, 3) = \"vw_\" Then _\n")
+fout.write("      If Left$(vbComp.Name, 3) = \"vw_\" Then\n")
 fout.write("        ThisDocument.VBProject.VBComponents.Remove vbComp\n")
+fout.write("      ElseIf Left$(vbComp.Name, 6) = \"visio_\" Then\n")
+fout.write("        ThisDocument.VBProject.VBComponents.Remove vbComp\n")
+fout.write("      EndIf\n")
 fout.write("    Next\n")
 fout.write("  Loop\n")
 fout.write("  For Each vbComp in MyComponents\n")
