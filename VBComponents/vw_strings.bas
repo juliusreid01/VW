@@ -49,3 +49,23 @@ Public Const S_LBL_RND_SQUARE as String = "RoundedSquare"
 Public Const S_LBL_RND_DIAMOND as String = "RoundedDiamond"
 Public Const S_LBL_OVAL as String = "Oval"
 Public Const S_LBL_CIRCLE as String = "Circle"
+
+' list items
+Public Const S_LIST_NONE as String = "None"
+Public Const S_LIST_ALL as String = "All"
+Public Const S_LIST_POSEDGE as String = "Posedge"
+Public Const S_LIST_NEGEDGE as String = "Negedge"
+Public Const S_LIST_NODE as String = "Node"
+Public Const S_LIST_SPACER as String = "Spacer"
+Public Const S_LIST_DRIVE_X as String = "DriveX"
+Public Const S_LIST_DRIVE_Z as String = "DriveZ"
+Public Const S_LIST_DRIVE_0 as String = "Drive0"
+Public Const S_LIST_DRIVE_1 as String = "Drive1"
+Public Const S_LIST_ABSOLUTE as String = "Absolute"
+
+Public Function GenList(ParamArray items() as Variant)
+  GenList = items(LBound(items))
+  For i = LBound(items) + 1 to UBound(items)
+    GenList = GenList & ";" & items(i)
+  Next i
+End Function
