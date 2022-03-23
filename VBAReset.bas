@@ -21,26 +21,23 @@ Public Sub VBA_Reset()
     MyComponents.Add VW_HOME & "vw_Types.bas"
     MyComponents.Add "D:\VW\Visio_Shape_Wrapper" & "vw_shape_wrapper_c.cls"
 
-    For Each vbComp in ThisDocument.VBProject.VBComponents
-        ' modify the prefix here as well
-        If Left$(vbComp.Name, 3) = "vw_" Then
-            ' vbext_ComponentType
-            'Select Case vbComp.Type
-            ' Case 1 ' vbext_ct_StdModule
-            '    MyComponents.Add vbComp.Name, ".bas"
-            ' Case 2 ' vbext_ct_ClassModule
-            '    MyComponents.Add vbComp.Name, ".cls"
-            ' Case 3 ' vbext_ct_MSForm
-            '    MyComponents.Add vbComp.Name, ".frm"
-            'End Select
-            ThisDocument.VBProject.VBComponents.Remove vbComp
-        End If
-    Next
-
-    If ThisDocument.VBProject.VBComponents.Count > 2 Then
-        VBA_Reset
-        Exit Sub
-    End If
+    Do While ThisDocument.VBProject.VBComponents.Count > 2
+        For Each vbComp in ThisDocument.VBProject.VBComponents
+            ' modify the prefix here as well
+            If Left$(vbComp.Name, 3) = "vw_" Then
+                ' vbext_ComponentType
+                'Select Case vbComp.Type
+                ' Case 1 ' vbext_ct_StdModule
+                '    MyComponents.Add vbComp.Name, ".bas"
+                ' Case 2 ' vbext_ct_ClassModule
+                '    MyComponents.Add vbComp.Name, ".cls"
+                ' Case 3 ' vbext_ct_MSForm
+                '    MyComponents.Add vbComp.Name, ".frm"
+                'End Select
+                ThisDocument.VBProject.VBComponents.Remove vbComp
+            End If
+        Next
+    Loop
 
     For Each vbComp in MyComponents
         Application.VBE.ActiveVBProject.VBComponents.Import vbComp
