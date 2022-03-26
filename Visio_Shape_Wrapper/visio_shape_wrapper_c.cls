@@ -164,6 +164,7 @@ Public Property Let EndY(v As Variant)
   End If
 End Property
 
+' get the cell name with the parent shape name
 Public Function GetCellRefName(CellName As String) As String
   GetCellRefName = s.Name & "!" & CellName
 End Function
