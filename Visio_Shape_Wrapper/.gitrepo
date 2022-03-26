@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:juliusreid01/Visio_Shape_Wrapper.git
+	branch = master
+	commit = 8fa6b1baf3c1f2b13ed2243283ee50c43643dfe5
+	parent = b333a9281bf90ddf0aa9ed13c4c15bc31f9244c7
+	method = merge
+	cmdver = 0.4.3
