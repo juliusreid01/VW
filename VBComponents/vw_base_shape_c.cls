@@ -39,9 +39,10 @@ End Property
 
 Public Sub Initialize()
   RemoveSections
-  AddDataCells
   AddUserCells
+  AddDataCells
   ResetVisioShape
+  vsoShp.Text = vsoShp.Name
 End Sub
 
 Public Sub Delete()
@@ -156,6 +157,7 @@ Private Sub SetDataHidden()
     .SetCell Position:="Invisible", CellName:=S_CLOCK, v:="STRSAME("""", Prop." & S_CLOCK & ".Format)"
     .SetCell Position:="Invisible", CellName:=S_SIGNAL, v:="STRSAME("""", Prop." & S_SIGNAL & ".Format)"
     .SetCell Position:="Invisible", CellName:=S_EVENTTRIGGER, v:="STRSAME("""", Prop." & S_EVENTTYPE & ")"
+    .SetCell Position:="Invisible", CellName:=S_LABELEDGES, v:="STRSAME("""", Prop." & S_LABELEDGES & ".Format)"
     .SetCell Position:="Invisible", CellName:=S_LABELSIZE, v:="OR(Prop." & S_LABELEDGES & ".Invisible, STRSAME(""None"", Prop." & S_LABELEDGES & ", True))"
     .SetCell Position:="Invisible", CellName:=S_LABELFONT, v:="Prop." & S_LABELSIZE & ".Invisible"
   End With
@@ -189,7 +191,11 @@ End Sub
 
 ' called by ResetVisioShape to reset the geometry
 Public Sub ResetGeometry(Optional s as Shape = Nothing)
+  Dim Height as Variant
+
   If Not s is Nothing Then Set Me.Shape = s
+
+  Height = vsoShp.Cells("Height").Formula
 
   vsoShp.DeleteSection visSectionConnectionPts
   vsoShp.DeleteSection visSectionScratch
@@ -206,4 +212,5 @@ Public Sub ResetGeometry(Optional s as Shape = Nothing)
   wShape.SetPoint visSectionFirstComponent, visRowComponent + 2, "Width*1", "Height*0"
   vsoShp.RowType(visSectionFirstComponent, visRowComponent + 1) = visTagMoveTo
   vsoShp.RowType(visSectionFirstComponent, visRowComponent + 2) = visTagLineTo
+  vsoShp.Cells("Height").FormulaForce = Height
 End Sub

@@ -17,7 +17,7 @@ Public Sub VBA_Reset()
   MyComponents.Add "D:\VW\VBComponents\vw_controller.bas"
   MyComponents.Add "D:\VW\VBComponents\vw_Signal_c.cls"
   MyComponents.Add "D:\VW\VBComponents\vw_strings.bas"
-  MyComponents.Add "D:\VW\VBComponents\vw_Types.bas"
+  MyComponents.Add "D:\VW\VBComponents\vw_types.bas"
   MyComponents.Add "D:\VW\Visio_Shape_Wrapper\visio_shape_wrapper_c.cls"
   Do While ThisDocument.VBProject.VBComponents.Count > 2
     For Each vbComp in ThisDocument.VBProject.VBComponents

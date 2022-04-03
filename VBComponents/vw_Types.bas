@@ -1,4 +1,4 @@
-Attribute VB_Name = "vw_Types"
+Attribute VB_Name = "vw_types"
 
 Public Enum SignalType
   Clock  = 0

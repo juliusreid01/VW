@@ -1,10 +1,13 @@
 Attribute VB_Name = "vw_test_base_signal"
 
 Public Sub Test_BaseSignal()
+  Dim shp as Shape
   Dim bSignal as vw_base_signal_c
-  Set bSignal = new vw_base_signal_c
 
-  Set bSignal.Shape = ActivePage.DrawLine(1, 10, 4, 11)
+  Set shp = ActivePage.DrawLine(1, 10, 4, 10)
+
+  Set bSignal = new vw_base_signal_c
+  Set bSignal.Shape = shp
   bSignal.Initialize SignalType.Signal
 
   vw_test_base_shape.Test_BaseShape bSignal.Base

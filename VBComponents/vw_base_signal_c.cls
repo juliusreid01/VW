@@ -90,7 +90,7 @@ Public Property Get Test() as Variant
 End Sub
 
 Public Property Set Test(v as Variant)
-  wShape.SetCell(S_TEST, v)
+  wShape.SetCell S_TEST, v
 End Sub
 
 Private Function GetNumeric(CellName as String, Optional AltReturn as Variant = 0) as Variant
@@ -104,7 +104,7 @@ Private Function GetNumeric(CellName as String, Optional AltReturn as Variant = 
 End Function
 
 Public Property Get SignalType() as Integer
-  SignalType = GetNumeric(S_TYPE, SignalType.Void)
+  SignalType = GetNumeric(S_TYPE, vw_types.SignalType.Void)
 End Property
 
 Public Property Get ChildOffset() as Double
@@ -129,4 +129,64 @@ End Property
 
 Public Property Get HasEdges() as Integer
   HasEdges = GetNumeric(S_EDGES)
+End Property
+
+Public Property Get Name() as String
+  Name = wShape.Result(S_NAME)
+End Property
+
+Public Property Get Clock() as String
+  Clock = wShape.Result(S_CLOCK)
+End Property
+
+Public Property Get Signal() as String
+  Signal = wShape.Result(S_SIGNAL)
+End Property
+
+Public Property Get ActiveLow() as Boolean
+  ActiveLow = CBool(wShape.Result(S_ACTIVELOW))
+End Property
+
+Public Property Get Period() as Double
+  Period = wShape.Result(S_PERIOD)
+End Property
+
+Public Property Get Skew() as Double
+  Skew = wShape.Result(S_SKEW)
+End Property
+
+Public Property Get Delay() as Double
+  Delay = wShape.Result(S_DELAY)
+End Property
+
+Public Property Get DutyCycle() as Double
+  DutyCycle = wShape.Result(S_DUTYCYCLE)
+End Property
+
+Public Property Get SignalSkew() as Double
+  SignalSkew = wShape.Result(S_SIGNALSKEW)
+End Property
+
+Public Property Get EventType() as String
+  EventType = wShape.Result(S_EVENTTYPE)
+End Property
+
+Public Property Get EventTrigger() as String
+  EventTrigger = wShape.Result(S_EVENTTRIGGER)
+End Property
+
+Public Property Get EventPosition() as Double
+  EventPosition = wShape.Result(S_EVENTPOSITION)
+End Property
+
+Public Property Get LabelEdges() as String
+  LabelEdges = wShape.Result(S_LABELEDGES)
+End Property
+
+Public Property Get LabelSize() as Double
+  LabelSize = wShape.Result(S_LABELSIZE)
+End Property
+
+Public Property Get LabelFont() as Integer
+  LabelFont = wShape.Result(S_LABELFONT)
 End Property
