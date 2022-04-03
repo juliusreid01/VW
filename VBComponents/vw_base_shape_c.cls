@@ -29,6 +29,10 @@ Public Property Set Shape(s as Shape)
   Set vsoShp = s
 End Property
 
+Public Property Get Shape() as Shape
+  Set Shape = vsoShp
+End Property
+
 Public Property Get Wrapper() as visio_shape_wrapper_c
   Set Wrapper = wShape
 End Property
@@ -72,8 +76,8 @@ End Sub
 Private Sub AddDataCells()
   With wShape
     .AddDataCell S_NAME, """Enter a name for this object"""
-    .SetDataCell Name:=S_NAME, Position:="Verify", v:=True
-    .SetDataCell S_NAME, Chr(34) & vsoShp.Name & Chr(34)
+    .SetCell CellName:=S_NAME, Position:="Verify", v:=True
+    .SetCell S_NAME, Chr(34) & vsoShp.Name & Chr(34)
 
     .AddDataCell S_CLOCK, """Reference clock"""
     .AddDataCell S_SIGNAL, """Reference signal"""
@@ -96,16 +100,16 @@ End Sub
 ' called by AddDataCells
 Private Sub SetDataLabels()
   With wShape
-    .SetDataCell Position:="Label", Name:=S_ACTIVELOW, v:=S_LABEL_ACTIVELOW
-    .SetDataCell Position:="Label", Name:=S_SKEW, v:=S_LABEL_SKEW
-    .SetDataCell Position:="Label", Name:=S_DUTYCYCLE, v:=S_LABEL_DUTYCYCLE
-    .SetDataCell Position:="Label", Name:=S_SIGNALSKEW, v:=S_LABEL_SIGNALSKEW
-    .SetDataCell Position:="Label", Name:=S_EVENTTYPE, v:=S_LABEL_EVENTTYPE
-    .SetDataCell Position:="Label", Name:=S_EVENTTRIGGER, v:=S_LABEL_EVENTTRIGGER
-    .SetDataCell Position:="Label", Name:=S_EVENTPOSITION, v:=S_LABEL_EVENTPOSITION
-    .SetDataCell Position:="Label", Name:=S_LABELEDGES, v:=S_LABEL_LABELEDGES
-    .SetDataCell Position:="Label", Name:=S_LABELSIZE, v:=S_LABEL_LABELSIZE
-    .SetDataCell Position:="Label", Name:=S_LABELFONT, v:=S_LABEL_LABELFONT
+    .SetCell Position:="Label", CellName:=S_ACTIVELOW, v:=S_LABEL_ACTIVELOW
+    .SetCell Position:="Label", CellName:=S_SKEW, v:=S_LABEL_SKEW
+    .SetCell Position:="Label", CellName:=S_DUTYCYCLE, v:=S_LABEL_DUTYCYCLE
+    .SetCell Position:="Label", CellName:=S_SIGNALSKEW, v:=S_LABEL_SIGNALSKEW
+    .SetCell Position:="Label", CellName:=S_EVENTTYPE, v:=S_LABEL_EVENTTYPE
+    .SetCell Position:="Label", CellName:=S_EVENTTRIGGER, v:=S_LABEL_EVENTTRIGGER
+    .SetCell Position:="Label", CellName:=S_EVENTPOSITION, v:=S_LABEL_EVENTPOSITION
+    .SetCell Position:="Label", CellName:=S_LABELEDGES, v:=S_LABEL_LABELEDGES
+    .SetCell Position:="Label", CellName:=S_LABELSIZE, v:=S_LABEL_LABELSIZE
+    .SetCell Position:="Label", CellName:=S_LABELFONT, v:=S_LABEL_LABELFONT
   End With
   SetDataTypes
 End Sub
@@ -113,21 +117,21 @@ End Sub
 ' called by SetDataLabels
 Private Sub SetDataTypes()
   With wShape
-    .SetDataCell Position:="Type", Name:=S_NAME, v:=visPropTypeString
-    .SetDataCell Position:="Type", Name:=S_CLOCK, v:=visPropTypeListFix
-    .SetDataCell Position:="Type", Name:=S_SIGNAL, v:=visPropTypeListFix
-    .SetDataCell Position:="Type", Name:=S_ACTIVELOW, v:=visPropTypeBool
-    .SetDataCell Position:="Type", Name:=S_PERIOD, v:=visPropTypeNumber
-    .SetDataCell Position:="Type", Name:=S_SKEW, v:=visPropTypeNumber
-    .SetDataCell Position:="Type", Name:=S_DELAY, v:=visPropTypeNumber
-    .SetDataCell Position:="Type", Name:=S_DUTYCYCLE, v:=visPropTypeNumber
-    .SetDataCell Position:="Type", Name:=S_SIGNALSKEW, v:=visPropTypeNumber
-    .SetDataCell Position:="Type", Name:=S_EVENTTYPE, v:=visPropTypeListFix
-    .SetDataCell Position:="Type", Name:=S_EVENTTRIGGER, v:=visPropTypeListFix
-    .SetDataCell Position:="Type", Name:=S_EVENTPOSITION, v:=visPropTypeListVar
-    .SetDataCell Position:="Type", Name:=S_LABELEDGES, v:=visPropTypeListVar
-    .SetDataCell Position:="Type", Name:=S_LABELSIZE, v:=visPropTypeListNumber
-    .SetDataCell Position:="Type", Name:=S_LABELFONT, v:=visPropTypeListNumber
+    .SetCell Position:="Type", CellName:=S_NAME, v:=visPropTypeString
+    .SetCell Position:="Type", CellName:=S_CLOCK, v:=visPropTypeListFix
+    .SetCell Position:="Type", CellName:=S_SIGNAL, v:=visPropTypeListFix
+    .SetCell Position:="Type", CellName:=S_ACTIVELOW, v:=visPropTypeBool
+    .SetCell Position:="Type", CellName:=S_PERIOD, v:=visPropTypeNumber
+    .SetCell Position:="Type", CellName:=S_SKEW, v:=visPropTypeNumber
+    .SetCell Position:="Type", CellName:=S_DELAY, v:=visPropTypeNumber
+    .SetCell Position:="Type", CellName:=S_DUTYCYCLE, v:=visPropTypeNumber
+    .SetCell Position:="Type", CellName:=S_SIGNALSKEW, v:=visPropTypeNumber
+    .SetCell Position:="Type", CellName:=S_EVENTTYPE, v:=visPropTypeListFix
+    .SetCell Position:="Type", CellName:=S_EVENTTRIGGER, v:=visPropTypeListFix
+    .SetCell Position:="Type", CellName:=S_EVENTPOSITION, v:=visPropTypeListVar
+    .SetCell Position:="Type", CellName:=S_LABELEDGES, v:=visPropTypeListVar
+    .SetCell Position:="Type", CellName:=S_LABELSIZE, v:=visPropTypeListNumber
+    .SetCell Position:="Type", CellName:=S_LABELFONT, v:=visPropTypeListNumber
   End With
   SetDataFormats
 End Sub
@@ -135,13 +139,13 @@ End Sub
 ' called by SetDataTypes
 Private Sub SetDataFormats()
   With wShape
-    .SetDataCell Position:="Format", Name:=S_PERIOD, v:="""0.00 u"""
-    .SetDataCell Position:="Format", Name:=S_SKEW, v:="""0.0 u"""
-    .SetDataCell Position:="Format", Name:=S_DELAY, v:="""0.000 u"""
-    .SetDataCell Position:="Format", Name:=S_DUTYCYCLE, v:="""0.0 u"""
-    .SetDataCell Position:="Format", Name:=S_SIGNALSKEW, v:="""0.000 u"""
-    .SetDataCell Position:="Format", Name:=S_LABELSIZE, v:="""0.000 u"""
-    .SetDataCell Position:="Format", Name:=S_LABELFONT, v:="""0 u"""
+    .SetCell Position:="Format", CellName:=S_PERIOD, v:="""0.00 u"""
+    .SetCell Position:="Format", CellName:=S_SKEW, v:="""0.0 u"""
+    .SetCell Position:="Format", CellName:=S_DELAY, v:="""0.000 u"""
+    .SetCell Position:="Format", CellName:=S_DUTYCYCLE, v:="""0.0 u"""
+    .SetCell Position:="Format", CellName:=S_SIGNALSKEW, v:="""0.000 u"""
+    .SetCell Position:="Format", CellName:=S_LABELSIZE, v:="""0.000 u"""
+    .SetCell Position:="Format", CellName:=S_LABELFONT, v:="""0 u"""
   End With
   SetDataHidden
 End Sub
@@ -149,11 +153,11 @@ End Sub
 ' called by SetDataFormat
 Private Sub SetDataHidden()
   With wShape
-    .SetDataCell Position:="Invisible", Name:=S_CLOCK, v:="STRSAME("""", Prop." & S_CLOCK & ".Format)"
-    .SetDataCell Position:="Invisible", Name:=S_SIGNAL, v:="STRSAME("""", Prop." & S_SIGNAL & ".Format)"
-    .SetDataCell Position:="Invisible", Name:=S_EVENTTRIGGER, v:="STRSAME("""", Prop." & S_EVENTTYPE & ")"
-    .SetDataCell Position:="Invisible", Name:=S_LABELSIZE, v:="OR(Prop." & S_LABELEDGES & ".Invisible, STRSAME(""None"", Prop." & S_LABELEDGES & ", True))"
-    .SetDataCell Position:="Invisible", Name:=S_LABELFONT, v:="Prop." & S_LABELSIZE & ".Invisible"
+    .SetCell Position:="Invisible", CellName:=S_CLOCK, v:="STRSAME("""", Prop." & S_CLOCK & ".Format)"
+    .SetCell Position:="Invisible", CellName:=S_SIGNAL, v:="STRSAME("""", Prop." & S_SIGNAL & ".Format)"
+    .SetCell Position:="Invisible", CellName:=S_EVENTTRIGGER, v:="STRSAME("""", Prop." & S_EVENTTYPE & ")"
+    .SetCell Position:="Invisible", CellName:=S_LABELSIZE, v:="OR(Prop." & S_LABELEDGES & ".Invisible, STRSAME(""None"", Prop." & S_LABELEDGES & ", True))"
+    .SetCell Position:="Invisible", CellName:=S_LABELFONT, v:="Prop." & S_LABELSIZE & ".Invisible"
   End With
 End Sub
 

@@ -30,11 +30,15 @@ End Sub
 Public Property Set Shape(s as Shape)
   Set bShape.Shape = s
   Set vsoShp = s
-  Set wShape = bShape.Wrapper()
+  Set wShape = bShape.Wrapper
 End Property
 
 Public Property Get Wrapper() as visio_shape_wrapper_c
   Set Wrapper = wShape
+End Property
+
+Public Property Get Base() as vw_base_shape_c
+  Set Base = bShape
 End Property
 
 Public Sub Initialize(pType as SignalType)
@@ -45,7 +49,7 @@ Public Sub Initialize(pType as SignalType)
 End Sub
 
 Public Sub Delete()
-  bShape.Delete()
+  bShape.Delete
   Set vsoShp = Nothing
   Set wShape = Nothing
   set bShape = Nothing
@@ -53,30 +57,76 @@ End Sub
 
 Private Sub SetUserCells()
   With wShape
-    .SetUserCell S_TYPE, Chr(34) & pSignalType & Chr(34)
-    .SetUserCell S_CHILDOFFSET, "BlockSizeY"
-    .SetUserCell S_ACTIVEWIDTH, VW_0 & "+(" & .GetCellName(S_PERIOD) & "*" & .GetCellName(S_DUTYCYCLE) & ")"
-    .SetUserCell S_SKEWWIDTH, VW_0 & "+(" & .GetCellName(S_SKEW) & "*" & .GetCellName(S_PERIOD) & "*0.5)"
-    .SetUserCell S_PULSES, "CEILING((Width-Geometry1.X1)/" & .GetCellName(S_PERIOD) & ")"
-    .SetUserCell S_BUSWIDTH, 1
-    .SetUserCell S_EDGES, False
+    .SetCell S_TYPE, Chr(34) & pSignalType & Chr(34)
+    .SetCell S_CHILDOFFSET, "BlockSizeY"
+    .SetCell S_ACTIVEWIDTH, VW_0 & "+(" & .GetCellName(S_PERIOD) & "*" & .GetCellName(S_DUTYCYCLE) & ")"
+    .SetCell S_SKEWWIDTH, VW_0 & "+(" & .GetCellName(S_SKEW) & "*" & .GetCellName(S_PERIOD) & "*0.5)"
+    .SetCell S_PULSES, "CEILING((Width-Geometry1.X1)/" & .GetCellName(S_PERIOD) & ")"
+    .SetCell S_BUSWIDTH, 1
+    .SetCell S_EDGES, False
   End With
 End Sub
 
 Private Sub SetDataCells()
   With wShape
-    .SetDataCell S_ACTIVELOW, False
-    .SetDataCell S_PERIOD, "BlockSizeX*2"
-    .SetDataCell S_SKEW, "10 %"
-    .SetDataCell S_DELAY, "BlockSizeX*0.5"
-    .SetDataCell S_DUTYCYCLE, "50 %"
-    .SetDataCell S_SIGNALSKEW, .GetCellName(S_SKEWWIDTH)
-    .SetDataCell S_EVENTTYPE, "Index(0," & .GetCellName(S_EVENTTYPE) & ".Format)"
-    .SetDataCell S_LABELEDGES, "Index(0," & .GetCellName(S_LABELEDGES) & ".Format)"
-    .SetDataCell S_LABELSIZE, "BlockSizeX*0.667"
-    .SetDataCell S_LABELFONT, "8 pt"
+    .SetCell S_ACTIVELOW, False
+    .SetCell S_PERIOD, "BlockSizeX*2"
+    .SetCell S_SKEW, "10 %"
+    .SetCell S_DELAY, "BlockSizeX*0.5"
+    .SetCell S_DUTYCYCLE, "50 %"
+    .SetCell S_SIGNALSKEW, .GetCellName(S_SKEWWIDTH)
+    .SetCell S_EVENTTYPE, "Index(0," & .GetCellName(S_EVENTTYPE) & ".Format)"
+    .SetCell S_LABELEDGES, "Index(0," & .GetCellName(S_LABELEDGES) & ".Format)"
+    .SetCell S_LABELSIZE, "BlockSizeX*0.667"
+    .SetCell S_LABELFONT, "8 pt"
 
-    .SetDataCell Position:="Format", Name:=S_LABELEDGES, v:=Chr(34) & S_LIST_NONE & Chr(34)
-    .SetDataCell Position:="Format", Name:=S_EVENTTRIGGER, v:=Chr(34) & S_LIST_ABSOLUTE & Chr(34)
+    .SetCell Position:="Format", CellName:=S_LABELEDGES, v:=Chr(34) & S_LIST_NONE & Chr(34)
+    .SetCell Position:="Format", CellName:=S_EVENTTRIGGER, v:=Chr(34) & S_LIST_ABSOLUTE & Chr(34)
   End With
 End Sub
+
+Public Property Get Test() as Variant
+  Test = wShape.Result(S_TEST)
+End Sub
+
+Public Property Set Test(v as Variant)
+  wShape.SetCell(S_TEST, v)
+End Sub
+
+Private Function GetNumeric(CellName as String, Optional AltReturn as Variant = 0) as Variant
+  Dim Res as Variant
+  Res = wShape.Result(CellName)
+  If IsNumeric(Res) Then
+    GetNumeric = Res
+  Else
+    GetNumeric = AltReturn
+  End If
+End Function
+
+Public Property Get SignalType() as Integer
+  SignalType = GetNumeric(S_TYPE, SignalType.Void)
+End Property
+
+Public Property Get ChildOffset() as Double
+  ChildOffset = GetNumeric(S_CHILDOFFSET)
+End Property
+
+Public Property Get ActiveWidth() as Double
+  ActiveWidth = GetNumeric(S_ACTIVEWIDTH)
+End Property
+
+Public Property Get SkewWidth() as Double
+  SkewWidth = GetNumeric(S_SKEWWIDTH)
+End Property
+
+Public Property Get Pulses() as Integer
+  Pulses = GetNumeric(S_PULSES)
+End Property
+
+Public Property Get BusWidth() as Integer
+  BusWidth = GetNumeric(S_BUSWIDTH, 1)
+End Property
+
+Public Property Get HasEdges() as Integer
+  HasEdges = GetNumeric(S_EDGES)
+End Property

@@ -175,40 +175,52 @@ Public Sub SetPoint(Section As Integer, Row As Integer, X As Variant, Y As Varia
 End Sub
 
 ' Expanded functions for vw_waves
-Public Sub AddUserCell(Name As String, Optional Prompt As String = "")
-  If s.CellExists("User." & Name, visExistsLocally) = False Then _
-    s.AddNamedRow visSectionUser, Name, visTagDefault
+Public Sub AddUserCell(CellName As String, Optional Prompt As String = "")
+  If s.CellExists("User." & CellName, visExistsLocally) = False Then _
+    s.AddNamedRow visSectionUser, CellName, visTagDefault
 
-  If Prompt <> "" Then s.Cells("User." & Name & ".Prompt").Formula = Prompt
+  If Prompt <> "" Then s.Cells("User." & CellName & ".Prompt").Formula = Prompt
 End Sub
 
-Public Sub SetUserCell(Name As String, v As Variant)
-  s.Cells("User." & Name).Formula = v
+Public Sub AddDataCell(CellName As String, Optional Prompt As String = "")
+  If s.CellExists("Prop." & CellName, visExistsLocally) = False Then _
+    s.AddNamedRow visSectionProp, CellName, visTagDefault
+
+  If Prompt <> "" Then s.Cells("Prop." & CellName & ".Prompt").Formula = Prompt
 End Sub
 
-Public Sub AddDataCell(Name As String, Optional Prompt As String = "")
-  If s.CellExists("Prop." & Name, visExistsLocally) = False Then _
-    s.AddNamedRow visSectionProp, Name, visTagDefault
-
-  If Prompt <> "" Then s.Cells("Prop." & Name & ".Prompt").Formula = Prompt
-End Sub
-
-Public Sub SetDataCell(Name As String, v As Variant, Optional Position As String = "")
-  If Position = "" Then
-    s.Cells("Prop." & Name).Formula = v
+Public Sub SetCell(CellName As String, v As Variant, Optional Position as String = "")
+  Dim Suffix as String: Suffix = ""
+  If Position <> "" Then Suffix = "." & Position
+  If s.CellExists(CellName, visExistsLocally) <> False Then
+    s.Cells(CellName).FormulaForce = v
+  ElseIf s.CellExists("Prop." & CellName & Suffix, visExistsLocally) <> False Then
+    s.Cells("Prop." & CellName).FormulaForce = v
+  ElseIf s.CellExists("User." & CellName & Suffix, visExistsLocally) <> False Then
+    s.Cells("User." & CellName).FormulaForce = v
   Else
-    s.Cells("Prop." & Name & "." & Position).Formula = v
+    Err.Raise vbObjectError + 512, "visio_shape_wrapper_c", "Cell: " & CellName & " not found!"
   End If
 End Sub
 
-Public Sub SetCell(Name As String, v As Variant)
-  If s.CellExists(Name, visExistsLocally) <> False Then
-    s.Cells(Name).FormulaForce = v
-  ElseIf s.CellExists("Prop." & Name, visExistsLocally) <> False Then
-    s.Cells("Prop." & Name).FormulaForce = v
-  ElseIf s.CellExists("User." & Name, visExistsLocally) <> False Then
-    s.Cells("User." & Name).FormulaForce = v
+Public Function Result(CellName as String, Optional Units as String = "") as Variant
+  If s.CellExists(CellName, visExistsLocally) <> False Then
+    Result = s.Cells(CellName).Result(Units)
+  ElseIf s.CellExists("Prop." & CellName, visExistsLocally) <> False Then
+    Result = s.Cells("Prop." & CellName).Result(Units)
+  ElseIf s.CellExists("User." & CellName, visExistsLocally) <> False Then
+    Result = s.Cells("User." & CellName).Result(Units)
   Else
-    Err.Raise vbObjectError + 512, "visio_shape_wrapper_c", "Cell: " & Name & " not found!"
+    Err.Raise vbObjectError + 512, "visio_shape_wrapper_c", "Cell: " & CellName & " not found!"
   End If
-End Sub
+End Function
+
+Public Function GetCellName(CellName as String) as String
+  If s.CellExists("Prop." & CellName, visExistsLocally) <> False Then
+    GetCellName = "Prop." & CellName
+  Elseif s.CellExists("User." & CellName, visExistsLocally) <> False Then
+    GetCellName = "User." & CellName
+  Else
+    Err.Raise vbObjectError + 512, "visio_shape_wrapper_c", "Cell: " & CellName & " not found!"
+  End If
+End Function

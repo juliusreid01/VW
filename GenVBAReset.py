@@ -4,7 +4,7 @@ import re
 
 print("Hello World")
 files = []
-ignore = ['ThisDocument', 'VBAReset', 'Test', 'vw_base_signal_c', 'vw_err']
+ignore = ['ThisDocument', 'VBAReset', 'Test', 'vw_err']
 
 def GetComps(path):
     for f in listdir(path):

@@ -9,9 +9,11 @@ Public Sub VBA_Reset()
   Set MyComponents = New Collection
   MyComponents.Add "D:\VW\Tests\vw_test.bas"
   MyComponents.Add "D:\VW\Tests\vw_test_base_shape.bas"
+  MyComponents.Add "D:\VW\Tests\vw_test_base_signal.bas"
   MyComponents.Add "D:\VW\VBComponents\vw_base_shape_c.cls"
+  MyComponents.Add "D:\VW\VBComponents\vw_base_signal_c.cls"
   MyComponents.Add "D:\VW\VBComponents\vw_cfg.bas"
-  MyComponents.Add "D:\VW\VBComponents\vw_Clock_c.cls"
+  MyComponents.Add "D:\VW\VBComponents\vw_clock_c.cls"
   MyComponents.Add "D:\VW\VBComponents\vw_controller.bas"
   MyComponents.Add "D:\VW\VBComponents\vw_Signal_c.cls"
   MyComponents.Add "D:\VW\VBComponents\vw_strings.bas"
