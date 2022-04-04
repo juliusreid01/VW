@@ -259,4 +259,27 @@ Public Sub UpdateEvents()
   wShape.SetCell S_EDGES, nEdges
   y = GenList(S_LIST_NONE, S_LIST_ALL, S_LIST_POSEDGE, S_LIST_NEGEDGE)
   wShape.SetCell CellName:=S_LABELEDGES, v:=Chr(34) & y & Chr(34), Position:="Format"
+  'DrawEdges
+End Sub
+
+Public Sub DrawEdges()
+  Dim GeometryRow as Integer
+  Dim GeometryIdx as Integer
+
+  GeometryRow = 2
+  For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
+    If vsoShp.RowCount(visSectionFirstComponent) - 1 <= GeometryRow Then _
+      vsoShp.AddRow visSectionFirstComponent, GeometryRow, visTagLineTo
+    wShape.SetPoint visSectionFirstComponent, GeometryRow, _
+      "Scratch.X" & CStr(i+1), "Geometry1.Y" & CStr(GeometryRow - 1)
+    GeometryRow = GeometryRow + 1
+    If vsoShp.RowCount(visSectionFirstComponent) - 1 <= GeometryRow Then _
+      vsoShp.AddRow visSectionFirstComponent, GeometryRow, visTagLineTo
+    wShape.SetPoint visSectionFirstComponent, GeometryRow, _
+      wShape.GetCellName(S_SKEWWIDTH) & "+Scratch.X" & CStr(i+1), "Scratch.Y" & CStr(i+1)
+    GeometryRow = GeometryRow + 1
+  Next
+
+  GeometryRow = vsoShp.RowCount(visSectionFirstComponent) - 1
+  vsoShp.Cells("Geometry1.Y" & CStr(GeometryRow)).Formula = vsoShp.Cells("Geometry1.Y" & CStr(GeometryRow-1)).Formula
 End Sub
