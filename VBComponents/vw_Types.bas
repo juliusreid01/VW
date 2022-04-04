@@ -22,5 +22,6 @@ Public Enum EventType
   Gate1 = 4
   GateX = 5
   GateZ = 6
+  Delete = 15
 End Enum
     

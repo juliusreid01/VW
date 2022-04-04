@@ -32,8 +32,10 @@ Public Sub Test_BaseSignal()
   ' event testing
   bSignal.AddEdge "Width/2"
   bSignal.AddEdge "Prop.Delay"
-  bSignal.AddEdge "2.75"
+  bSignal.AddEdge 2.75
+  bSignal.AddEdge 2.5
   bSignal.AddEdge "Width/2"
+  bSignal.RemoveEvent 2.5
   bSignal.UpdateEvents
 
   If shp.RowCount(visSectionScratch) <> 3 Then _
@@ -54,7 +56,7 @@ Public Sub Test_BaseSignal()
                       "Expected: 0.25, Actual Scratch.Y3 = " & shp.Cells("Scratch.Y3").Result("") _
                         & vbNewLine & "Continue?") = vbNo Then Stop
 
-  ' review                        
+  ' review
   If MsgBox(Title:="Base Signal Test", Buttons:=vbYesNo, Prompt:="Review Signal?") = vbYes Then Stop
   bSignal.Delete
 End Sub

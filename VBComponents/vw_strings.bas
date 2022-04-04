@@ -62,6 +62,7 @@ Public Const S_LIST_DRIVE_Z as String = "DriveZ"
 Public Const S_LIST_DRIVE_0 as String = "Drive0"
 Public Const S_LIST_DRIVE_1 as String = "Drive1"
 Public Const S_LIST_ABSOLUTE as String = "Absolute"
+Public Const S_LIST_DELETE as String = "Delete"
 
 Public Function GenList(ParamArray items() as Variant)
   GenList = items(LBound(items))

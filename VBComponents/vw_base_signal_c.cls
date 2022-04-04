@@ -209,6 +209,18 @@ Public Sub AddEdge(xRelative as Variant)
   vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Formula = vw_types.Edge
 End Sub
 
+Public Sub RemoveEvent(xRelative as Variant)
+  Dim Row as Integer
+  Row = -1
+  wShape.SetCell S_TEST, xRelative
+
+  For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
+    If wShape.Result(S_TEST) = vsoShp.CellsSRC(visSectionScratch, i, visScratchX).Result("") Then Row = i
+  Next
+
+  If Row >= 0 Then vsoShp.DeleteRow visSectionScratch, Row
+End Sub
+
 Public Sub UpdateEvents()
   Dim PreviousEvent as Integer
   Dim y as Variant
