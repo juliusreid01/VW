@@ -27,6 +27,7 @@ Public Sub VBA_Reset()
         ThisDocument.VBProject.VBComponents.Remove vbComp
       EndIf
     Next
+    If ThisDocument.VBProject.VBComponents.Count > 2 Then Stop
   Loop
   For Each vbComp in MyComponents
     Application.VBE.ActiveVBProject.VBComponents.Import vbComp

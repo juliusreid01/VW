@@ -85,14 +85,6 @@ Private Sub SetDataCells()
   End With
 End Sub
 
-Public Property Get Test() as Variant
-  Test = wShape.Result(S_TEST)
-End Sub
-
-Public Property Set Test(v as Variant)
-  wShape.SetCell S_TEST, v
-End Sub
-
 Private Function GetNumeric(CellName as String, Optional AltReturn as Variant = 0) as Variant
   Dim Res as Variant
   Res = wShape.Result(CellName)
@@ -190,3 +182,69 @@ End Property
 Public Property Get LabelFont() as Integer
   LabelFont = wShape.Result(S_LABELFONT)
 End Property
+
+Public Sub AddEdge(xRelative as Variant)
+  Dim Row as Integer
+
+  Row = visRowLast
+
+  ' add the row if there are none
+  If vsoShp.RowCount(visSectionScratch) = 0 Then
+    Row = vsoShp.AddRow(visSectionScratch, visRowLast, visTagDefault)
+  ' otherwise select where to insert or modify an existing row
+  Else
+    wShape.SetCell S_TEST, xRelative
+    For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
+      If wShape.Result(S_TEST) < vsoShp.CellsSRC(visSectionScratch, i, visScratchX).Result("") Then
+        Row = i
+      ElseIf wShape.Result(S_TEST) = vsoShp.CellsSRC(visSectionScratch, i, visScratchX).Result("") Then
+        Row = i
+        Exit For
+      End If
+    Next i
+    If wShape.Result(S_TEST) <> vsoShp.CellsSRC(visSectionScratch, Row, visScratchX).Result("") Then _
+      Row = vsoShp.AddRow(visSectionScratch, Row, visTagDefault)
+  End If
+  vsoShp.CellsSRC(visSectionScratch, Row, visScratchX).Formula = xRelative
+  vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Formula = vw_types.Edge
+End Sub
+
+Public Sub UpdateEvents()
+  Dim PreviousEvent as Integer
+  Dim y as Variant
+  Dim nEdges as Integer
+  ' update the y formula for each row
+  ' Previous Type | Current Type | y
+  ' Edge->Edge = Height-(PreviousRow)
+  ' *->Gate1 = Height*1
+  ' *->Gate0 = Height*0
+  ' *->GateX = Height*0
+  ' *->GateZ = Height*0.5
+  nEdges = 0
+  PreviousEvent = -1
+  For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
+    Select Case vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Result("")
+     Case vw_types.Edge
+      nEdges = nEdges + 1
+      Select Case PreviousEvent
+       Case Is < 0, vw_types.Gate0
+        y = "Height*1"
+       Case vw_types.GateX, vw_types.GateZ, vw_types.Gate1
+        y = "Height*0"
+       Case vw_types.Edge
+        y = "Height-Scratch.Y" & CStr(i)
+      End Select
+     Case vw_types.Gate1
+      y = "Height*1"
+     Case vw_types.Gate0, vw_types.GateX
+      y = "Height*0"
+     Case vw_types.GateZ
+      y = "Height*0.5"
+    End Select
+    vsoShp.CellsSRC(visSectionScratch, i, visScratchY).Formula = y
+    PreviousEvent = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Result("")
+  Next i
+  wShape.SetCell S_EDGES, nEdges
+  y = GenList(S_LIST_NONE, S_LIST_ALL, S_LIST_POSEDGE, S_LIST_NEGEDGE)
+  wShape.SetCell CellName:=S_LABELEDGES, v:=Chr(34) & y & Chr(34), Position:="Format"
+End Sub

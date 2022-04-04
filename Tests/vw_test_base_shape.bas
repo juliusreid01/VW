@@ -44,13 +44,13 @@ Private Sub RunTest()
 
   If shp.OneD = True Then
     If wShp.EndY <> wShp.BeginY Then
-      If MsgBox(Title:="Base Shape Test",  buttons:=vbYesNo + vbQuestion, _
+      If MsgBox(Title:="Base Shape Test",  Buttons:=vbYesNo + vbQuestion, _
                 Prompt:="Shape is not level. BeginY = " & CStr(wShp.BeginY) & ", EndY = " & CStr(wShp.EndY) _
                         & vbNewLine & "Continue?") = vbNo Then Stop
     End If
     If wShp.PinX <> wShp.BeginX Or wShp.PinY <> wShp.BeginY Or _
        wShp.LocPinX <> 0 Or wShp.LocPinY <> 0 Then
-      If MsgBox(Title:="Base Shape Test",  buttons:=vbYesNo + vbQuestion, _
+      If MsgBox(Title:="Base Shape Test",  Buttons:=vbYesNo + vbQuestion, _
                 Prompt:="Shape orientation is not Bottom-Left." & vbNewLine & _
                          "BeginX = " & CStr(wShp.BeginX) & ", PinX = " & CStr(wShp.PinX) & vbNewLine & _
                          "BeginY = " & CStr(wShp.BeginY) & ", PinY = " & CStr(wShp.PinY) & vbNewLine & _
@@ -58,7 +58,7 @@ Private Sub RunTest()
                          & vbNewLine & "Continue?") = vbNo Then Stop
     End If
   ElseIf wShp.LocPinX <> 0 Or wShp.LocPinY <> 0 Then
-      If MsgBox(Title:="Base Shape Test",  buttons:=vbYesNo + vbQuestion, _
+      If MsgBox(Title:="Base Shape Test",  Buttons:=vbYesNo + vbQuestion, _
                 Prompt:="Shape orientation is not Bottom-Left." & vbNewLine & _
                          "PinX = " & CStr(wShp.PinX) & ", PinY = " & CStr(wShp.PinY) & vbNewLine & _
                          "LocPinX = " & CStr(wShp.LocPinX) & ", LocPinY = " & CStr(wShp.LocPinY) _
@@ -132,9 +132,13 @@ Private Sub RunTest()
 
   For i = 0 to shp.RowCount(visSectionProp) - 1
     Select Case shp.CellsSRC(visSectionProp, i, visCustPropsInvis).RowName
-      case S_CLOCK, S_SIGNAL, S_LABELEDGES, S_LABELSIZE, S_LABELFONT
+      Case S_CLOCK, S_SIGNAL, S_LABELSIZE, S_LABELFONT
         ExpInvisible = 1
-      case Else
+      Case S_LABELEDGES
+        ExpInvisible = IIf(shp.Cells("Prop.LabelEdges").ResultStr("") <> "None", 1, 0)
+      Case S_EVENTTRIGGER, S_EVENTPOSITION
+        ExpInvisible = IIf(shp.Cells("Prop.EventType").ResultStr("") = "", 1, 0)
+      Case Else
         ExpInvisible = 0
     End Select
     If ExpInvisible <> shp.CellsSRC(visSectionProp, i, visCustPropsInvis).Result("") Then _

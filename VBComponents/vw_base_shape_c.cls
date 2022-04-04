@@ -157,6 +157,7 @@ Private Sub SetDataHidden()
     .SetCell Position:="Invisible", CellName:=S_CLOCK, v:="STRSAME("""", Prop." & S_CLOCK & ".Format)"
     .SetCell Position:="Invisible", CellName:=S_SIGNAL, v:="STRSAME("""", Prop." & S_SIGNAL & ".Format)"
     .SetCell Position:="Invisible", CellName:=S_EVENTTRIGGER, v:="STRSAME("""", Prop." & S_EVENTTYPE & ")"
+    .SetCell Position:="Invisible", CellName:=S_EVENTPOSITION, v:="OR(Prop." & S_EVENTTRIGGER & ".Invisible,STRSAME("""", Prop." & S_EVENTTRIGGER & "))"
     .SetCell Position:="Invisible", CellName:=S_LABELEDGES, v:="STRSAME("""", Prop." & S_LABELEDGES & ".Format)"
     .SetCell Position:="Invisible", CellName:=S_LABELSIZE, v:="OR(Prop." & S_LABELEDGES & ".Invisible, STRSAME(""None"", Prop." & S_LABELEDGES & ", True))"
     .SetCell Position:="Invisible", CellName:=S_LABELFONT, v:="Prop." & S_LABELSIZE & ".Invisible"

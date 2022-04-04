@@ -194,9 +194,9 @@ Public Sub SetCell(CellName As String, v As Variant, Optional Position as String
   If Position <> "" Then Suffix = "." & Position
   If s.CellExists(CellName, visExistsLocally) <> False Then
     s.Cells(CellName).FormulaForce = v
-  ElseIf s.CellExists("Prop." & CellName & Suffix, visExistsLocally) <> False Then
+  ElseIf s.CellExists("Prop." & CellName, visExistsLocally) <> False Then
     s.Cells("Prop." & CellName & Suffix).FormulaForce = v
-  ElseIf s.CellExists("User." & CellName & Suffix, visExistsLocally) <> False Then
+  ElseIf s.CellExists("User." & CellName, visExistsLocally) <> False Then
     s.Cells("User." & CellName & Suffix).FormulaForce = v
   Else
     Err.Raise vbObjectError + 512, "visio_shape_wrapper_c", "Cell: " & CellName & " not found!"
