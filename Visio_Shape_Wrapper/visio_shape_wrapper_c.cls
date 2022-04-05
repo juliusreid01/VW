@@ -24,7 +24,6 @@ End Property
 
 Public Sub Delete()
   s.Delete
-  Set s = Nothing
 End Sub
 
 Public Property Get Name() As String

@@ -47,8 +47,6 @@ End Sub
 
 Public Sub Delete()
   wShape.Delete
-  Set vsoShp = Nothing
-  Set wShape = Nothing
 End Sub
 
 Private Sub RemoveSections()
