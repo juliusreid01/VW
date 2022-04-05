@@ -16,7 +16,6 @@ Private vsoShp as Shape
 Private wShape as visio_shape_wrapper_c
 
 Private Sub Class_Initialize()
-  Set wShape = new visio_shape_wrapper_c
 End Sub
 
 Private Sub Class_Terminate()
@@ -25,6 +24,7 @@ Private Sub Class_Terminate()
 End Sub
 
 Public Property Set Shape(s as Shape)
+  Set wShape = new visio_shape_wrapper_c
   Set wShape.vsoShape = s
   Set vsoShp = s
 End Property
