@@ -256,9 +256,21 @@ Public Sub UpdateEvents()
     vsoShp.CellsSRC(visSectionScratch, i, visScratchY).Formula = y
     PreviousEvent = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Result("")
   Next i
-  wShape.SetCell S_EDGES, nEdges
-  y = GenList(S_LIST_NONE, S_LIST_ALL, S_LIST_POSEDGE, S_LIST_NEGEDGE)
+
+  Do While vsoShp.CellsSRC(visSectionScratch, visRowLast, visScratchX).Result("") >= wShape.Width
+    If vsoShp.CellsSRC(visSectionScratch, visRowLast, VW_COL_EVENT_TYPE).Result("") = vw_types.Edge Then nEdges = nEdges - 1
+    vsoShp.DeleteRow visSectionScratch, visRowLast
+  Loop
+
+  If nEdges >= 2 Then
+    y = GenList(S_LIST_NONE, S_LIST_ALL, S_LIST_POSEDGE, S_LIST_NEGEDGE)
+  ElseIf nEdges = 1 Then
+    y = GenList(S_LIST_NONE, S_LIST_ALL)
+  Else
+    y = ""
+  End If
   wShape.SetCell CellName:=S_LABELEDGES, v:=Chr(34) & y & Chr(34), Position:="Format"
+  wShape.SetCell S_EDGES, nEdges
   'DrawEdges
 End Sub
 
