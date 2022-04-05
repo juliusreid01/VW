@@ -18,7 +18,6 @@ Private bShape as vw_base_shape_c
 Private pSignalType as SignalType
 
 Private Sub Class_Initialize()
-  set bShape = new vw_base_shape_c
 End Sub
 
 Private Sub Class_Terminate()
@@ -28,6 +27,7 @@ Private Sub Class_Terminate()
 End Sub
 
 Public Property Set Shape(s as Shape)
+  Set bShape = new vw_base_shape_c
   Set bShape.Shape = s
   Set vsoShp = s
   Set wShape = bShape.Wrapper
@@ -50,9 +50,6 @@ End Sub
 
 Public Sub Delete()
   bShape.Delete
-  Set vsoShp = Nothing
-  Set wShape = Nothing
-  set bShape = Nothing
 End Sub
 
 Private Sub SetUserCells()

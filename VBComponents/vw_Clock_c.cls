@@ -18,7 +18,6 @@ Private bShape as vw_base_shape_c
 Private bSignal as vw_base_signal_c
 
 Private Sub Class_Initialize()
-  set bSignal = new vw_base_signal_c
 End Sub
 
 Private Sub Class_Terminate()
@@ -29,6 +28,7 @@ Private Sub Class_Terminate()
 End Sub
 
 Public Property Set Shape(s as Shape)
+  set bSignal = new vw_base_signal_c
   Set bSignal.Shape = s
   Set bShape = bSignal.Base
   Set vsoShp = s
@@ -49,10 +49,6 @@ End Sub
 
 Public Sub Delete()
   bSignal.Delete
-  Set vsoShp = Nothing
-  Set wShape = Nothing
-  set bShape = Nothing
-  set bSignal = Nothing
 End Sub
 
 Public Sub Reset()
