@@ -10,6 +10,7 @@ Public Sub VBA_Reset()
   MyComponents.Add "D:\VW\Tests\vw_test.bas"
   MyComponents.Add "D:\VW\Tests\vw_test_base_shape.bas"
   MyComponents.Add "D:\VW\Tests\vw_test_base_signal.bas"
+  MyComponents.Add "D:\VW\Tests\vw_test_clock.bas"
   MyComponents.Add "D:\VW\VBComponents\vw_base_shape_c.cls"
   MyComponents.Add "D:\VW\VBComponents\vw_base_signal_c.cls"
   MyComponents.Add "D:\VW\VBComponents\vw_cfg.bas"

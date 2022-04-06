@@ -214,6 +214,18 @@ Public Function Result(CellName as String, Optional Units as String = "") as Var
   End If
 End Function
 
+Public Function ResultStr(CellName as String) as String
+  If s.CellExists(CellName, visExistsLocally) <> False Then
+    ResultStr = s.Cells(CellName).ResultStr("")
+  ElseIf s.CellExists("Prop." & CellName, visExistsLocally) <> False Then
+    ResultStr = s.Cells("Prop." & CellName).ResultStr("")
+  ElseIf s.CellExists("User." & CellName, visExistsLocally) <> False Then
+    ResultStr = s.Cells("User." & CellName).ResultStr("")
+  Else
+    Err.Raise vbObjectError + 512, "visio_shape_wrapper_c", "Cell: " & CellName & " not found!"
+  End If
+End Function
+
 Public Function GetCellName(CellName as String) as String
   If s.CellExists("Prop." & CellName, visExistsLocally) <> False Then
     GetCellName = "Prop." & CellName

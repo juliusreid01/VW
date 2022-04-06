@@ -26,6 +26,11 @@ Private Sub Class_Terminate()
   set bShape = Nothing
 End Sub
 
+Public Sub NewSignal(x as Double, y as Double, w as Double, Optional ContainingPage as Page = Nothing)
+  If ContainingPage Is Nothing Then Set ContainingPage = ActivePage
+  Set Me.Shape = ContainingPage.DrawLine(x, y, x + w, y)
+End Sub
+
 Public Property Set Shape(s as Shape)
   Set bShape = new vw_base_shape_c
   Set bShape.Shape = s
@@ -121,15 +126,15 @@ Public Property Get HasEdges() as Integer
 End Property
 
 Public Property Get Name() as String
-  Name = wShape.Result(S_NAME)
+  Name = wShape.ResultStr(S_NAME)
 End Property
 
 Public Property Get Clock() as String
-  Clock = wShape.Result(S_CLOCK)
+  Clock = wShape.ResultStr(S_CLOCK)
 End Property
 
 Public Property Get Signal() as String
-  Signal = wShape.Result(S_SIGNAL)
+  Signal = wShape.ResultStr(S_SIGNAL)
 End Property
 
 Public Property Get ActiveLow() as Boolean
@@ -157,11 +162,11 @@ Public Property Get SignalSkew() as Double
 End Property
 
 Public Property Get EventType() as String
-  EventType = wShape.Result(S_EVENTTYPE)
+  EventType = wShape.ResultStr(S_EVENTTYPE)
 End Property
 
 Public Property Get EventTrigger() as String
-  EventTrigger = wShape.Result(S_EVENTTRIGGER)
+  EventTrigger = wShape.ResultStr(S_EVENTTRIGGER)
 End Property
 
 Public Property Get EventPosition() as Double
@@ -169,7 +174,7 @@ Public Property Get EventPosition() as Double
 End Property
 
 Public Property Get LabelEdges() as String
-  LabelEdges = wShape.Result(S_LABELEDGES)
+  LabelEdges = wShape.ResultStr(S_LABELEDGES)
 End Property
 
 Public Property Get LabelSize() as Double
