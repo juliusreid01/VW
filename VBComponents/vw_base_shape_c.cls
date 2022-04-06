@@ -176,7 +176,7 @@ Public Sub ResetVisioShape(Optional s as Shape = Nothing)
 
   wShape.Height = "BlockSizeY"
   wShape.LocPinX = 0
-  wShape.LocPinY = "If(FlipY, Height*1, Height*0)"
+  wShape.LocPinY = "Guard(If(FlipY, Height*1, Height*0))"
   wShape.FlipY = "Prop.ActiveLow"
 
   vsoShp.Cells("Para.HorzAlign").Formula = visHorzRight

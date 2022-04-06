@@ -16,6 +16,7 @@ Private Sub Create()
 End Sub
 
 Private Sub Delete()
+  shp.ContainingPage.PageSheet.OpenSheetWindow
   bShp.Delete
 End Sub
 

@@ -165,8 +165,46 @@ Public Property Get EventType() as String
   EventType = wShape.ResultStr(S_EVENTTYPE)
 End Property
 
+Public Property Let EventType(list as String)
+  wShape.SetCell Position:="Format", CellName:=S_EVENTTYPE, v:=Chr(34) & list & Chr(34)
+End Property
+
+Public Property Let SelectEventType(idx as Integer)
+  'Dim EventTriggerFormat as String
+  'Dim EventPositionFormat as String
+  wShape.SetCell CellName:=S_EVENTTYPE, _
+                 v:="INDEX(" & idx & "," & wShape.GetCellName(S_EVENTTYPE) & ".Format)"
+  Select Case Me.EventType
+   Case S_LIST_EDGE
+   Case S_LIST_NODE
+    Setup_Node
+   Case S_LIST_SPACER
+   Case S_LIST_DRIVE_0
+   Case S_LIST_DRIVE_1
+   Case S_LIST_DRIVE_X
+   Case S_LIST_DRIVE_Z
+   Case Else
+    Err.Raise vbObjectError + 512, "Base Signal: Unknown Event Type", "Actions not defined for Event Type: " & Me.EventType
+  End Select
+End Property
+
 Public Property Get EventTrigger() as String
   EventTrigger = wShape.ResultStr(S_EVENTTRIGGER)
+End Property
+
+Public Property Let SelectEventTrigger(idx as Integer)
+  wShape.SetCell CellName:=S_EVENTTRIGGER, _
+                 v:="INDEX(" & idx & "," & wShape.GetCellName(S_EVENTTRIGGER) & ".Format)"
+  Select Case Me.EventTrigger
+   Case S_LIST_ABSOLUTE
+   Case S_LIST_POSEDGE
+   Case S_LIST_NEGEDGE
+   Case S_LIST_EDGE
+  End Select
+End Property
+
+Public Property Let EventTrigger(list as String)
+  wShape.SetCell Position:="Format", CellName:=S_EVENTTRIGGER, v:=Chr(34) & list & Chr(34)
 End Property
 
 Public Property Get EventPosition() as Double
@@ -297,3 +335,47 @@ Public Sub DrawEdges()
   GeometryRow = vsoShp.RowCount(visSectionFirstComponent) - 1
   vsoShp.Cells("Geometry1.Y" & CStr(GeometryRow)).Formula = vsoShp.Cells("Geometry1.Y" & CStr(GeometryRow-1)).Formula
 End Sub
+
+Private Sub Setup_Node()
+  Dim Row as Integer
+  Dim Posedge as Boolean
+  Dim Negedge as Boolean
+
+  Row = 0
+  Posedge = False
+  Negedge = False
+
+  Do While Row < vsoShp.RowCount(visSectionScratch) And (Posedge = False Or Negedge = False)
+    Posedge = Posedge Or IsPosedge(Row)
+    Negedge = Negedge Or IsNegedge(Row)
+    Row = Row + 1
+  Loop
+
+  If Posedge And Negedge Then
+    Me.EventTrigger = ";" & GenList(S_LIST_POSEDGE, S_LIST_NEGEDGE)
+  ElseIf Posedge Then
+    Me.EventTrigger = ";" & GenList(S_LIST_POSEDGE)
+  ElseIf Negedge Then
+    Me.EventTrigger = ";" & GenList(S_LIST_NEGEDGE)
+  End If
+ENd Sub
+
+Private Function IsPosedge(Row as Integer) as Boolean
+  Dim EventY as Double
+  EventY = vsoShp.CellsSRC(visSectionScratch, Row, visScratchY).Result("")
+  If vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Result("") <> vw_types.Edge Then
+    IsPosedge = False
+  ElseIf (wShape.FlipY = 0 And EventY = wShape.Height) Or (wShape.FlipY = 1 And EventY = 0) Then
+    IsPosedge = True
+  Else
+    IsPosedge = False
+  End If
+End Function
+
+Private Function IsNegedge(Row as Integer) as Boolean
+  If vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Result("") <> vw_types.Edge Then
+    IsNegedge = False
+  Else
+    IsNegedge = Not IsPosedge(Row)
+  End If
+End Function

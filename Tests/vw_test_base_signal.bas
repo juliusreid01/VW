@@ -73,9 +73,9 @@ Public Sub Test_BaseSignal()
               Prompt:="Expected: 1.5, Actual Geometry1.X4 = " & shp.Cells("Geometry1.X4").Result("") & vbNewLine & _
                       "Expected: 0.25, Actual Geometry1.Y4 = " & shp.Cells("Geometry1.Y4").Result("") _
                       & vbNewLine & "Continue?") = vbNo Then Stop
-  If shp.Cells("Geometry1.X5").Result("") <> 1.1525 Or shp.Cells("Geometry1.Y5").Result("") <> 0 Then _
+  If shp.Cells("Geometry1.X5").Result("") <> 1.525 Or shp.Cells("Geometry1.Y5").Result("") <> 0 Then _
     If MsgBox(Title:="Base Signal Test: Geometry1 Row2 Mismatch", Buttons:=vbYesNo + vbQuestion, _
-              Prompt:="Expected: 1.1525, Actual Geometry1.X5 = " & shp.Cells("Geometry1.X5").Result("") & vbNewLine & _
+              Prompt:="Expected: 1.525, Actual Geometry1.X5 = " & shp.Cells("Geometry1.X5").Result("") & vbNewLine & _
                       "Expected: 0, Actual Geometry1.Y5 = " & shp.Cells("Geometry1.Y5").Result("") _
                       & vbNewLine & "Continue?") = vbNo Then Stop
   If shp.Cells("Geometry1.X6").Result("") <> 2.75 Or shp.Cells("Geometry1.Y6").Result("") <> 0 Then _
@@ -90,5 +90,6 @@ Public Sub Test_BaseSignal()
                       & vbNewLine & "Continue?") = vbNo Then Stop
   ' review
   If MsgBox(Title:="Base Signal Test", Buttons:=vbYesNo, Prompt:="Review Signal?") = vbYes Then Stop
+  shp.ContainingPage.PageSheet.OpenSheetWindow
   bSignal.Delete
 End Sub
