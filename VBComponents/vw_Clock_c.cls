@@ -79,7 +79,9 @@ Public Sub DoEdges()
 
   wShape.SetCell S_TEST, wShape.GetCellName(S_DELAY)
   Do While wShape.Result(S_TEST) <= wShape.Width
-    bSignal.AddEdge vsoShp.Cells( wShape.GetCellName(S_TEST) ).Formula
+    If vsoShp.RowExists(visSectionScratch, Row, visExistsLocally) = False Then
+      bSignal.AddEdge vsoShp.Cells( wShape.GetCellName(S_TEST) ).Formula
+    End If
     Row = Row + 1
     If (Row Mod 2) = Remainder Then
       wShape.SetCell S_TEST, "Scratch.X" & CStr(Row) & "+" & wShape.GetCellName(S_ACTIVEWIDTH)
@@ -90,4 +92,18 @@ Public Sub DoEdges()
 
   bSignal.UpdateEvents
   bSignal.DrawEdges
+End Sub
+
+Public Sub CellChanged(vsoCell as IVCell)
+  Select Case vsoCell.Name
+    Case wShape.GetCellName(S_PERIOD), wShape.GetCellName(S_DELAY)
+      Me.DoEdges
+    Case wShape.GetCellName(S_DUTYCYCLE), wShape.GetCellName(S_SKEW), wShape.GetCellName(S_DELAY)
+      For i = shp.RowCount(visSectionScratch) - 1 to 0 Step -1
+        If shp.CellsSRC(visSectionScratch, i, visScratchX).Result("") > shp.Cells("Width").Result("") Then
+          Me.DoEdges
+          Exit For
+        End If
+      Next
+  End Select
 End Sub
