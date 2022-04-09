@@ -27,19 +27,31 @@ Public Sub Test_Clock()
     Err.Raise vbObjectError + 2004, "Clock Test: Incorrect Default", "Default Duty Cycle: 0.5, Read: " & CStr(clk.Base.DutyCycle)
   If clk.Base.SignalSkew <> 0.025 Then _
     Err.Raise vbObjectError + 2004, "Clock Test: Incorrect Default", "Default Signal Skew: 0.025, Read: " & CStr(clk.Base.SignalSkew)
+  If clk.Shape.Cells("Prop.EventType.Format").Formula <> """;Node;Gap;Drive0;Drive1;DriveX;DriveZ;Delete""" Then _
+    Err.Raise vbObjectError + 2004, "Clock Test: Incorrect List", "Expected List: ';Node;Gap;Drive0;Drive1;DriveX;DriveZ;Delete', Read: " & clk.Shape.Cells("Prop.EventType.Format").Formula
+  If clk.Shape.Cells("Prop.LabelEdges.Format").Formula <> """None;All;Posedge;Negedge""" Then _
+    Err.Raise vbObjectError + 2004, "Clock Test: Incorrect List", "Expected List: 'None;All;Posedge;Negedge', Read: " & clk.Shape.Cells("Prop.LabelEdges.Format").Formula
 
-  If clk.Shape.Cells("Prop.EventType.Format").Formula <> """;Node;Spacer;Drive0;Drive1;DriveX;DriveZ;Delete""" Then _
-    Err.Raise vbObjectError + 2004, "Clock Test: Incorrect List", "Expected List: ';Node;Spacer;Drive0;Drive1;DriveX;DriveZ;Delete', Read: " & clk.Shape.Cells("Prop.EventType.Format").Formula
+  clk.Shape.Cells("Prop.Period").Formula = VW_0 & "+ 0.25"
+  clk.CellChanged clk.Shape.Cells("Prop.Period")
+  If clk.Shape.Cells("User.Edges").Result("") <> 23 Then _
+    Err.Raise vbObjectError + 2004, "Clock Test: Period failure", "Expected 23 edges after halving period"
+  If clk.Shape.RowCount(visSectionFirstComponent) <> 49 Then _
+    Err.Raise vbObjectError + 2004, "Clock Test: Period failure", "Expected 49 rows in Geometry1 after halving period"
+
+
+  '' select and add a drive0
+  'clk.Base.SelectEventType = 3
+
+  '' select and add a node
   clk.Base.SelectEventType = 1
   If clk.Base.EventType <> "Node" Then _
     Err.Raise vbObjectError + 2004, "Clock Test: Selection Failure", "Failed to select Node Event Type"
   If clk.Shape.Cells("Prop.EventTrigger.Invisible") <> 0 Then _
     Err.Raise vbObjectError + 2004, "Clock Test: Incorrect Visibilty", "Event Trigger should be visible when set"
-  If clk.Shape.Cells("Prop.EventTrigger.Format").Formula <> """;Posedge;Negedge""" Then _
-    Err.Raise vbObjectError + 2004, "Clock Test: Incorrect List", "Expected List: ';Posedge;Negedge'"
-
-  If clk.Shape.Cells("Prop.LabelEdges.Format").Formula <> """None;All;Posedge;Negedge""" Then _
-    Err.Raise vbObjectError + 2004, "Clock Test: Incorrect List", "Expected List: 'None;All;Posedge;Negedge', Read: " & clk.Shape.Cells("Prop.LabelEdges.Format").Formula
+  If clk.Shape.Cells("Prop.EventTrigger.Format").Formula <> """;Edge;Posedge;Negedge""" Then _
+    Err.Raise vbObjectError + 2004, "Clock Test: Incorrect List", "Expected List: ';Edge;Posedge;Negedge'"
+  clk.Base.SelectEventTrigger = 2
 
   ' review
   If MsgBox(Title:="Clock Test", Buttons:=vbYesNo, Prompt:="Review Signal?") = vbYes Then Stop

@@ -22,7 +22,7 @@ Public Sub Test_BaseSignal()
     Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Active Width Incorrect", "Read " & CStr(bSignal.ActiveWidth) & " instead of '0.25'"
   If bSignal.SkewWidth <> 0.025 Then _
     Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Skew Width Incorrect", "Read " & CStr(bSignal.SkewWidth) & " instead of '0.025'"
-  If bSignal.Pulses <> 6 Then _
+  If bSignal.Pulses <> 0 Then _
     Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Pulses Incorrect", "Read " & CStr(bSignal.Pulses) & " instead of '6'"
   If bSignal.BusWidth <> 1 Then _
     Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Bus Width Incorrect", "Read " & CStr(bSignal.BusWidth) & " instead of '0.25'"

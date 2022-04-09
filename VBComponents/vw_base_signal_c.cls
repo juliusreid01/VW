@@ -63,7 +63,7 @@ Private Sub SetUserCells()
     .SetCell S_CHILDOFFSET, "BlockSizeY"
     .SetCell S_ACTIVEWIDTH, VW_0 & "+(" & .GetCellName(S_PERIOD) & "*" & .GetCellName(S_DUTYCYCLE) & ")"
     .SetCell S_SKEWWIDTH, VW_0 & "+(" & .GetCellName(S_SKEW) & "*" & .GetCellName(S_PERIOD) & "*0.5)"
-    .SetCell S_PULSES, "CEILING((Width-Geometry1.X1)/" & .GetCellName(S_PERIOD) & ")"
+    .SetCell S_PULSES, "(Width-Geometry1.X2)/" & .GetCellName(S_PERIOD)
     .SetCell S_BUSWIDTH, 1
     .SetCell S_EDGES, False
   End With
@@ -183,6 +183,7 @@ Public Property Let SelectEventType(idx as Integer)
    Case S_LIST_DRIVE_1
    Case S_LIST_DRIVE_X
    Case S_LIST_DRIVE_Z
+   Case ""
    Case Else
     Err.Raise vbObjectError + 512, "Base Signal: Unknown Event Type", "Actions not defined for Event Type: " & Me.EventType
   End Select
@@ -197,9 +198,12 @@ Public Property Let SelectEventTrigger(idx as Integer)
                  v:="INDEX(" & idx & "," & wShape.GetCellName(S_EVENTTRIGGER) & ".Format)"
   Select Case Me.EventTrigger
    Case S_LIST_ABSOLUTE
-   Case S_LIST_POSEDGE
-   Case S_LIST_NEGEDGE
-   Case S_LIST_EDGE
+   Case S_LIST_EDGE, S_LIST_POSEDGE, S_LIST_NEGEDGE
+    EdgeList
+    wShape.SetCell CellName:=S_EVENTPOSITION, v:="INDEX(0, " & wShape.GetCellName(S_EVENTPOSITION) & ".Format)"
+   Case ""
+   Case Else
+    Err.Raise vbObjectError + 512, "Base Signal: Unknown Event Trigger", "Actions not defined for Event Trigger: " & Me.EventTrigger
   End Select
 End Property
 
@@ -207,8 +211,12 @@ Public Property Let EventTrigger(list as String)
   wShape.SetCell Position:="Format", CellName:=S_EVENTTRIGGER, v:=Chr(34) & list & Chr(34)
 End Property
 
-Public Property Get EventPosition() as Double
+Public Property Get EventPosition() as Variant
   EventPosition = wShape.Result(S_EVENTPOSITION)
+End Property
+
+Public Property Let EventPosition(list as Variant)
+  wShape.SetCell Position:="Format", CellName:=S_EVENTPOSITION, v:=Chr(34) & list & Chr(34)
 End Property
 
 Public Property Get LabelEdges() as String
@@ -265,6 +273,7 @@ Public Sub UpdateEvents()
   Dim PreviousEvent as Integer
   Dim y as Variant
   Dim nEdges as Integer
+  Dim eType as Long
   ' update the y formula for each row
   ' Previous Type | Current Type | y
   ' Edge->Edge = Height-(PreviousRow)
@@ -275,7 +284,8 @@ Public Sub UpdateEvents()
   nEdges = 0
   PreviousEvent = -1
   For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
-    Select Case vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Result("")
+    eType = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0)
+    Select Case eType And Not(vw_types.ROW_MASK)
      Case vw_types.Edge
       nEdges = nEdges + 1
       Select Case PreviousEvent
@@ -294,11 +304,11 @@ Public Sub UpdateEvents()
       y = "Height*0.5"
     End Select
     vsoShp.CellsSRC(visSectionScratch, i, visScratchY).Formula = y
-    PreviousEvent = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Result("")
+    PreviousEvent = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0) And Not(vw_types.ROW_MASK)
   Next i
 
   Do While vsoShp.CellsSRC(visSectionScratch, visRowLast, visScratchX).Result("") >= wShape.Width
-    If vsoShp.CellsSRC(visSectionScratch, visRowLast, VW_COL_EVENT_TYPE).Result("") = vw_types.Edge Then nEdges = nEdges - 1
+    If RowIsEdge(vsoShp.RowCount(visSectionScratch-1)) Then nEdges = nEdges - 1
     vsoShp.DeleteRow visSectionScratch, visRowLast
   Loop
 
@@ -324,6 +334,9 @@ Public Sub DrawEdges()
       vsoShp.AddRow visSectionFirstComponent, GeometryRow, visTagLineTo
     wShape.SetPoint visSectionFirstComponent, GeometryRow, _
       "Scratch.X" & CStr(i+1), "Geometry1.Y" & CStr(GeometryRow - 1)
+    '//TODO
+    vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Formula = _
+      vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0) Or GeometryRow
     GeometryRow = GeometryRow + 1
     If vsoShp.RowCount(visSectionFirstComponent) - 1 <= GeometryRow Then _
       vsoShp.AddRow visSectionFirstComponent, GeometryRow, visTagLineTo
@@ -351,19 +364,52 @@ Private Sub Setup_Node()
     Row = Row + 1
   Loop
 
+  wShape.SetCell Position:="Type", CellName:=S_EVENTPOSITION, v:=visPropTypeListFix
+  EdgeList
+  wShape.SetCell CellName:=S_EVENTPOSITION, v:="INDEX(0, " & wShape.GetCellName(S_EVENTPOSITION) & ".Format)"
+
   If Posedge And Negedge Then
-    Me.EventTrigger = ";" & GenList(S_LIST_POSEDGE, S_LIST_NEGEDGE)
+    Me.EventTrigger = ";" & GenList(S_LIST_EDGE, S_LIST_POSEDGE, S_LIST_NEGEDGE)
   ElseIf Posedge Then
     Me.EventTrigger = ";" & GenList(S_LIST_POSEDGE)
   ElseIf Negedge Then
     Me.EventTrigger = ";" & GenList(S_LIST_NEGEDGE)
+  Else
+    Me.SelectEventType = 0
   End If
-ENd Sub
+End Sub
+
+Private Sub EdgeList()
+  Dim incr as Boolean
+  Dim cnt as Integer
+  Dim list as String
+
+  cnt = 0
+  list = ""
+
+  For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
+    incr = False
+    Select Case Me.EventTrigger
+     Case S_LIST_EDGE
+      If IsPosedge(CInt(i)) Or IsNegedge(CInt(i)) Then incr = True
+     Case S_LIST_POSEDGE
+      If IsPosedge(CInt(i)) Then incr = True
+     Case S_LIST_NEGEDGE
+      If IsNegedge(CInt(i)) Then incr = True
+    End Select
+    If incr = True Then
+      cnt = cnt + 1
+      list = list & ";" & CStr(cnt)
+    End If
+  Next i
+
+  Me.EventPosition = list
+End Sub
 
 Private Function IsPosedge(Row as Integer) as Boolean
   Dim EventY as Double
   EventY = vsoShp.CellsSRC(visSectionScratch, Row, visScratchY).Result("")
-  If vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Result("") <> vw_types.Edge Then
+  If Not RowIsEdge(Row) Then
     IsPosedge = False
   ElseIf (wShape.FlipY = 0 And EventY = wShape.Height) Or (wShape.FlipY = 1 And EventY = 0) Then
     IsPosedge = True
@@ -373,9 +419,16 @@ Private Function IsPosedge(Row as Integer) as Boolean
 End Function
 
 Private Function IsNegedge(Row as Integer) as Boolean
-  If vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Result("") <> vw_types.Edge Then
+  If Not RowIsEdge(Row) Then
     IsNegedge = False
   Else
     IsNegedge = Not IsPosedge(Row)
   End If
+End Function
+
+Public Function RowIsEdge(Row as Integer) as Boolean
+  Dim eType as Long
+  RowIsEdge = False
+  eType = vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).ResultInt("", 0)
+  If (eType and vw_types.Edge) = vw_types.Edge Then RowIsEdge = True
 End Function
