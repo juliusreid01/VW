@@ -28,18 +28,6 @@ Public Const S_LABELEDGES as String = "LabelEdges"
 Public Const S_LABELSIZE as String = "LabelSize"
 Public Const S_LABELFONT as String = "LabelFont"
 
-' data cell labels
-Public Const S_LABEL_ACTIVELOW as String = """Active Low"""
-Public Const S_LABEL_SKEW as String = """Skew %"""
-Public Const S_LABEL_DUTYCYCLE as String = """Duty Cycle %"""
-Public Const S_LABEL_SIGNALSKEW as String = """Signal Skew"""
-Public Const S_LABEL_EVENTTYPE as String = """Event Type"""
-Public Const S_LABEL_EVENTTRIGGER as String = """Trigger"""
-Public Const S_LABEL_EVENTPOSITION as String = """Position"""
-Public Const S_LABEL_LABELEDGES as String = """Label Edges"""
-Public Const S_LABEL_LABELSIZE as String = """Label Size"""
-Public Const S_LABEL_LABELFONT as String = """Label Font Pt"""
-
 ' label shape strings
 Public Const S_LBL_RECTANGLE as String = "Rectangle"
 Public Const S_LBL_SQUARE as String = "Square"

@@ -26,16 +26,16 @@ Private Sub Class_Terminate()
   set bShape = Nothing
 End Sub
 
-Public Sub NewSignal(x as Double, y as Double, w as Double, Optional ContainingPage as Page = Nothing)
-  If ContainingPage Is Nothing Then Set ContainingPage = ActivePage
-  Set Me.Shape = ContainingPage.DrawLine(x, y, x + w, y)
-End Sub
-
 Public Property Set Shape(s as Shape)
   Set bShape = new vw_base_shape_c
   Set bShape.Shape = s
   Set vsoShp = s
   Set wShape = bShape.Wrapper
+  pSignalType = wShape.Result(CellName:=S_TYPE, RaiseError:=False)
+End Property
+
+Public Property Get Shape() as Shape
+  Set Shape = vsoShp
 End Property
 
 Public Property Get Wrapper() as visio_shape_wrapper_c
@@ -46,15 +46,15 @@ Public Property Get Base() as vw_base_shape_c
   Set Base = bShape
 End Property
 
+Public Sub Delete()
+  bShape.Delete
+End Sub
+
 Public Sub Initialize(pType as SignalType)
   bShape.Initialize
   pSignalType = pType
   SetUserCells
   SetDataCells
-End Sub
-
-Public Sub Delete()
-  bShape.Delete
 End Sub
 
 Private Sub SetUserCells()
@@ -87,44 +87,11 @@ Private Sub SetDataCells()
   End With
 End Sub
 
-Private Function GetNumeric(CellName as String, Optional AltReturn as Variant = 0) as Variant
-  Dim Res as Variant
-  Res = wShape.Result(CellName)
-  If IsNumeric(Res) Then
-    GetNumeric = Res
-  Else
-    GetNumeric = AltReturn
-  End If
-End Function
-
-Public Property Get SignalType() as Integer
-  SignalType = GetNumeric(S_TYPE, vw_types.SignalType.Void)
+Public Property Get SignalType() as SignalType
+  SignalType = pSignalType
 End Property
 
-Public Property Get ChildOffset() as Double
-  ChildOffset = GetNumeric(S_CHILDOFFSET)
-End Property
-
-Public Property Get ActiveWidth() as Double
-  ActiveWidth = GetNumeric(S_ACTIVEWIDTH)
-End Property
-
-Public Property Get SkewWidth() as Double
-  SkewWidth = GetNumeric(S_SKEWWIDTH)
-End Property
-
-Public Property Get Pulses() as Integer
-  Pulses = GetNumeric(S_PULSES)
-End Property
-
-Public Property Get BusWidth() as Integer
-  BusWidth = GetNumeric(S_BUSWIDTH, 1)
-End Property
-
-Public Property Get HasEdges() as Integer
-  HasEdges = GetNumeric(S_EDGES)
-End Property
-
+'//TODO. do we REALLY need these property getters
 Public Property Get Name() as String
   Name = wShape.ResultStr(S_NAME)
 End Property
@@ -137,86 +104,16 @@ Public Property Get Signal() as String
   Signal = wShape.ResultStr(S_SIGNAL)
 End Property
 
-Public Property Get ActiveLow() as Boolean
-  ActiveLow = CBool(wShape.Result(S_ACTIVELOW))
-End Property
-
-Public Property Get Period() as Double
-  Period = wShape.Result(S_PERIOD)
-End Property
-
-Public Property Get Skew() as Double
-  Skew = wShape.Result(S_SKEW)
-End Property
-
-Public Property Get Delay() as Double
-  Delay = wShape.Result(S_DELAY)
-End Property
-
-Public Property Get DutyCycle() as Double
-  DutyCycle = wShape.Result(S_DUTYCYCLE)
-End Property
-
-Public Property Get SignalSkew() as Double
-  SignalSkew = wShape.Result(S_SIGNALSKEW)
-End Property
-
 Public Property Get EventType() as String
   EventType = wShape.ResultStr(S_EVENTTYPE)
-End Property
-
-Public Property Let EventType(list as String)
-  wShape.SetCell Position:="Format", CellName:=S_EVENTTYPE, v:=Chr(34) & list & Chr(34)
-End Property
-
-Public Property Let SelectEventType(idx as Integer)
-  'Dim EventTriggerFormat as String
-  'Dim EventPositionFormat as String
-  wShape.SetCell CellName:=S_EVENTTYPE, _
-                 v:="INDEX(" & idx & "," & wShape.GetCellName(S_EVENTTYPE) & ".Format)"
-  Select Case Me.EventType
-   Case S_LIST_EDGE
-   Case S_LIST_NODE
-    Setup_Node
-   Case S_LIST_SPACER
-   Case S_LIST_DRIVE_0
-   Case S_LIST_DRIVE_1
-   Case S_LIST_DRIVE_X
-   Case S_LIST_DRIVE_Z
-   Case ""
-   Case Else
-    Err.Raise vbObjectError + 512, "Base Signal: Unknown Event Type", "Actions not defined for Event Type: " & Me.EventType
-  End Select
 End Property
 
 Public Property Get EventTrigger() as String
   EventTrigger = wShape.ResultStr(S_EVENTTRIGGER)
 End Property
 
-Public Property Let SelectEventTrigger(idx as Integer)
-  wShape.SetCell CellName:=S_EVENTTRIGGER, _
-                 v:="INDEX(" & idx & "," & wShape.GetCellName(S_EVENTTRIGGER) & ".Format)"
-  Select Case Me.EventTrigger
-   Case S_LIST_ABSOLUTE
-   Case S_LIST_EDGE, S_LIST_POSEDGE, S_LIST_NEGEDGE
-    EdgeList
-    wShape.SetCell CellName:=S_EVENTPOSITION, v:="INDEX(0, " & wShape.GetCellName(S_EVENTPOSITION) & ".Format)"
-   Case ""
-   Case Else
-    Err.Raise vbObjectError + 512, "Base Signal: Unknown Event Trigger", "Actions not defined for Event Trigger: " & Me.EventTrigger
-  End Select
-End Property
-
-Public Property Let EventTrigger(list as String)
-  wShape.SetCell Position:="Format", CellName:=S_EVENTTRIGGER, v:=Chr(34) & list & Chr(34)
-End Property
-
 Public Property Get EventPosition() as Variant
   EventPosition = wShape.Result(S_EVENTPOSITION)
-End Property
-
-Public Property Let EventPosition(list as Variant)
-  wShape.SetCell Position:="Format", CellName:=S_EVENTPOSITION, v:=Chr(34) & list & Chr(34)
 End Property
 
 Public Property Get LabelEdges() as String
@@ -231,11 +128,10 @@ Public Property Get LabelFont() as Integer
   LabelFont = wShape.Result(S_LABELFONT)
 End Property
 
-Public Sub AddEdge(xRelative as Variant)
+Public Sub AddEvent(xRelative as Variant, Optional eType as EventType = vw_types.Edge)
   Dim Row as Integer
 
   Row = visRowLast
-
   ' add the row if there are none
   If vsoShp.RowCount(visSectionScratch) = 0 Then
     Row = vsoShp.AddRow(visSectionScratch, visRowLast, visTagDefault)
@@ -245,6 +141,7 @@ Public Sub AddEdge(xRelative as Variant)
     For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
       If wShape.Result(S_TEST) < vsoShp.CellsSRC(visSectionScratch, i, visScratchX).Result("") Then
         Row = i
+        Exit For
       ElseIf wShape.Result(S_TEST) = vsoShp.CellsSRC(visSectionScratch, i, visScratchX).Result("") Then
         Row = i
         Exit For
@@ -254,19 +151,31 @@ Public Sub AddEdge(xRelative as Variant)
       Row = vsoShp.AddRow(visSectionScratch, Row, visTagDefault)
   End If
   vsoShp.CellsSRC(visSectionScratch, Row, visScratchX).Formula = xRelative
-  vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Formula = vw_types.Edge
+  '//TODO if we decide to store additional information in the decimal portion this formula will fail
+  vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Formula = eType Or _
+    vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Result("")
 End Sub
 
-Public Sub RemoveEvent(xRelative as Variant)
+Public Sub RemoveEvent(xRelative as Variant, Optional eType as EventType = vw_types.Edge)
   Dim Row as Integer
   Row = -1
   wShape.SetCell S_TEST, xRelative
 
   For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
-    If wShape.Result(S_TEST) = vsoShp.CellsSRC(visSectionScratch, i, visScratchX).Result("") Then Row = i
+    If wShape.Result(S_TEST) = vsoShp.CellsSRC(visSectionScratch, i, visScratchX).Result("") Then
+      Row = i
+      Exit For
+    End If
   Next
 
-  If Row >= 0 Then vsoShp.DeleteRow visSectionScratch, Row
+  If Row >= 0 Then
+    '//TODO if we decide to store additional information in the decimal portion this formula will fail
+    vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Formula = Not(eType) And _
+      vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Result("")
+    '//TODO some eTypes have items that must be removed
+    If (vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Result("") And Not(ROW_MASK)) = 0 Then _
+      vsoShp.DeleteRow visSectionScratch, Row
+  End If
 End Sub
 
 Public Sub UpdateEvents()
@@ -286,7 +195,7 @@ Public Sub UpdateEvents()
   For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
     eType = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0)
     Select Case eType And Not(vw_types.ROW_MASK)
-     Case vw_types.Edge
+     Case vw_types.Edge, vw_types.EventType.Posedge
       nEdges = nEdges + 1
       Select Case PreviousEvent
        Case Is < 0, vw_types.Gate0
@@ -307,11 +216,13 @@ Public Sub UpdateEvents()
     PreviousEvent = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0) And Not(vw_types.ROW_MASK)
   Next i
 
+  ' remove any rows >= width
   Do While vsoShp.CellsSRC(visSectionScratch, visRowLast, visScratchX).Result("") >= wShape.Width
-    If RowIsEdge(vsoShp.RowCount(visSectionScratch-1)) Then nEdges = nEdges - 1
+    If IsEdge(vsoShp.RowCount(visSectionScratch-1)) Then nEdges = nEdges - 1
     vsoShp.DeleteRow visSectionScratch, visRowLast
   Loop
 
+  ' update which labels can be shown
   If nEdges >= 2 Then
     y = GenList(S_LIST_NONE, S_LIST_ALL, S_LIST_POSEDGE, S_LIST_NEGEDGE)
   ElseIf nEdges = 1 Then
@@ -321,32 +232,83 @@ Public Sub UpdateEvents()
   End If
   wShape.SetCell CellName:=S_LABELEDGES, v:=Chr(34) & y & Chr(34), Position:="Format"
   wShape.SetCell S_EDGES, nEdges
-  'DrawEdges
+  'DrawEvents
 End Sub
 
-Public Sub DrawEdges()
+Public Sub DrawEvents()
+  Dim eType as Integer
   Dim GeometryRow as Integer
-  Dim GeometryIdx as Integer
 
   GeometryRow = 2
   For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
-    If vsoShp.RowCount(visSectionFirstComponent) - 1 <= GeometryRow Then _
-      vsoShp.AddRow visSectionFirstComponent, GeometryRow, visTagLineTo
-    wShape.SetPoint visSectionFirstComponent, GeometryRow, _
-      "Scratch.X" & CStr(i+1), "Geometry1.Y" & CStr(GeometryRow - 1)
-    '//TODO
-    vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Formula = _
-      vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0) Or GeometryRow
-    GeometryRow = GeometryRow + 1
-    If vsoShp.RowCount(visSectionFirstComponent) - 1 <= GeometryRow Then _
-      vsoShp.AddRow visSectionFirstComponent, GeometryRow, visTagLineTo
-    wShape.SetPoint visSectionFirstComponent, GeometryRow, _
-      wShape.GetCellName(S_SKEWWIDTH) & "+Scratch.X" & CStr(i+1), "Scratch.Y" & CStr(i+1)
-    GeometryRow = GeometryRow + 1
+    eType = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0) And Not(ROW_MASK)
+
+    If ((eType And Edge) = Edge) Or ((eType And Gate) = Gate) Then
+      DrawTransition CInt(i), GeometryRow
+    ElseIf (eType And Node) = Node Then
+    ElseIf (eType And Gap) = Gap Then
+    End If
   Next
 
-  GeometryRow = vsoShp.RowCount(visSectionFirstComponent) - 1
-  vsoShp.Cells("Geometry1.Y" & CStr(GeometryRow)).Formula = vsoShp.Cells("Geometry1.Y" & CStr(GeometryRow-1)).Formula
+  ' remove additional geometry rows due to width changing
+  Do While vsoShp.RowCount(visSectionFirstComponent) - 1 > GeometryRow
+    vsoShp.DeleteRow visSectionFirstComponent, GeometryRow
+  Loop
+
+  ' correct last row
+  wShape.SetPoint visSectionFirstComponent, GeometryRow, "Width", vsoShp.Cells("Geometry1.Y" & CStr(GeometryRow-1)).Formula
+End Sub
+
+Private Sub DrawTransition(i as Integer, ByRef GeometryRow as Integer)
+  Dim GeometryIdx as Integer
+  Dim xFormula as Variant
+  Dim eType as Integer
+  Dim EventY as Double
+
+  eType = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0) And Not(ROW_MASK)
+  EventY = vsoShp.CellsSRC(visSectionScratch, i, visScratchY).Result("")
+
+  ' add a row if needed
+  If vsoShp.RowCount(visSectionFirstComponent) - 1 <= GeometryRow Then vsoShp.AddRow visSectionFirstComponent, GeometryRow, visTagLineTo
+  ' makes the line to the event
+  wShape.SetPoint visSectionFirstComponent, GeometryRow, "Scratch.X" & CStr(i+1), "Geometry1.Y" & CStr(GeometryRow - 1)
+  ' Or with the GeometryRow
+  vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).Formula = eType Or GeometryRow
+  GeometryRow = GeometryRow + 1
+  ' determine If we should apply skew
+  If (eType And Edge) = Edge Then
+    xFormula = wShape.GetCellName(S_SKEWWIDTH) & "+Scratch.X" & CStr(i+1)
+  ElseIf (eType And Gate) = Gate Then
+    xFormula = "Scratch.X" & CStr(i+1)
+  End If
+  ' make the event
+  If vsoShp.RowCount(visSectionFirstComponent) - 1 <= GeometryRow Then vsoShp.AddRow visSectionFirstComponent, GeometryRow, visTagLineTo
+  wShape.SetPoint visSectionFirstComponent, GeometryRow, xFormula, "Scratch.Y" & CStr(i+1)
+  GeometryRow = GeometryRow + 1
+  ' draw additional geometry
+End Sub
+
+Private Sub DrawNode(ScratchRow as Integer)
+  Dim Node as visio_shape_wrapper_c
+  Set Node = new visio_shape_wrapper_c
+  Set Node.vsoShp = vsoShp.ContainingPage.DrawRectangle(wShape.PinX, wShape.PinY, wShape.PinX, wShape.PinY)
+  '//TODO. this should be coming from vw_cfg as NODE_HEIGHT_MULTIPLIER
+  Node.Height = "Guard(" & vsoShp.Name & ("!Height") & "*0.5)"
+  Node.Width = "Guard(Height)"
+  Node.PinX = "Guard(" & vsoShp.Name & "!PinX + ((" _
+              (vsoShp.Name & "!Scratch.X" & CStr(ScratchRow + 1)) & "-" & (vsoShp.Name & "!Scratch.X" & CStr(ScratchRow)) & _
+              ")*0.5))"
+  Node.PinY = wShape.GetCellRefName
+  Node.vsoShp.Cells("Rounding").Formula = "Width*0.5"
+  '//TODO. should nodes have their own setting
+  Node.vsoShp.Cells("Char.Size").Formula = "Guard(" & vsoShp.Name & "!" & wShape.GetCellName(S_LABELFONT) & ")"
+  '//TODO. a page has to update this text
+  Node.vsoShp.Text = "a"
+  Node.AddUserCell "Parent"
+  Node.SetCell CellName:="Parent", v:=vsoShp.Name
+  ' update the row data
+  vsoShp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Formula = _
+    vsoShp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Result("") Or Node
 End Sub
 
 Private Sub Setup_Node()
@@ -369,13 +331,14 @@ Private Sub Setup_Node()
   wShape.SetCell CellName:=S_EVENTPOSITION, v:="INDEX(0, " & wShape.GetCellName(S_EVENTPOSITION) & ".Format)"
 
   If Posedge And Negedge Then
-    Me.EventTrigger = ";" & GenList(S_LIST_EDGE, S_LIST_POSEDGE, S_LIST_NEGEDGE)
+    wShape.SetCellFormat S_EVENTTRIGGER, ";" & GenList(S_LIST_EDGE, S_LIST_POSEDGE, S_LIST_NEGEDGE)
   ElseIf Posedge Then
-    Me.EventTrigger = ";" & GenList(S_LIST_POSEDGE)
+    wShape.SetCellFormat S_EVENTTRIGGER, ";" & GenList(S_LIST_POSEDGE)
   ElseIf Negedge Then
-    Me.EventTrigger = ";" & GenList(S_LIST_NEGEDGE)
+    wShape.SetCellFormat S_EVENTTRIGGER, ";" & GenList(S_LIST_NEGEDGE)
   Else
-    Me.SelectEventType = 0
+    wShape.SetCell CellName:=S_EVENTTYPE, _
+                   v:="INDEX(0," & wShape.GetCellName(S_EVENTTYPE) & ".Format)"
   End If
 End Sub
 
@@ -403,13 +366,13 @@ Private Sub EdgeList()
     End If
   Next i
 
-  Me.EventPosition = list
+  wShape.SetCellFormat S_EVENTPOSITION, list
 End Sub
 
 Private Function IsPosedge(Row as Integer) as Boolean
   Dim EventY as Double
   EventY = vsoShp.CellsSRC(visSectionScratch, Row, visScratchY).Result("")
-  If Not RowIsEdge(Row) Then
+  If Not IsEdge(Row) Then
     IsPosedge = False
   ElseIf (wShape.FlipY = 0 And EventY = wShape.Height) Or (wShape.FlipY = 1 And EventY = 0) Then
     IsPosedge = True
@@ -419,16 +382,22 @@ Private Function IsPosedge(Row as Integer) as Boolean
 End Function
 
 Private Function IsNegedge(Row as Integer) as Boolean
-  If Not RowIsEdge(Row) Then
+  If Not IsEdge(Row) Then
     IsNegedge = False
   Else
     IsNegedge = Not IsPosedge(Row)
   End If
 End Function
 
-Public Function RowIsEdge(Row as Integer) as Boolean
+Public Function IsEdge(Row as Integer) as Boolean
   Dim eType as Long
-  RowIsEdge = False
+  IsEdge = False
   eType = vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).ResultInt("", 0)
-  If (eType and vw_types.Edge) = vw_types.Edge Then RowIsEdge = True
+  If (eType and vw_types.Edge) = vw_types.Edge Then IsEdge = True
+End Function
+
+Public Function GetRowIdx(Row as Integer) as Integer
+  Dim eType as Long
+  eType = vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).ResultInt("", 0)
+  GetRowIdx = eType And ROW_MASK
 End Function

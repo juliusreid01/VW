@@ -38,20 +38,27 @@ Public Sub Test_Clock()
     Err.Raise vbObjectError + 2004, "Clock Test: Period failure", "Expected 23 edges after halving period"
   If clk.Shape.RowCount(visSectionFirstComponent) <> 49 Then _
     Err.Raise vbObjectError + 2004, "Clock Test: Period failure", "Expected 49 rows in Geometry1 after halving period"
+  clk.Shape.Cells("EndX").Formula = VW_0 & "+ 2.5"
+  clk.CellChanged clk.Shape.Cells("Width")
+  clk.Shape.Cells("EndX").Formula = VW_0 & "+ 4"
+  clk.CellChanged clk.Shape.Cells("Width")
+  If clk.Shape.Cells("User.Edges").Result("") <> 23 Then _
+    Err.Raise vbObjectError + 2004, "Clock Test: Period failure", "Expected 23 edges after halving period"
+  If clk.Shape.RowCount(visSectionFirstComponent) <> 49 Then _
+    Err.Raise vbObjectError + 2004, "Clock Test: Period failure", "Expected 49 rows in Geometry1 after halving period"
 
-
-  '' select and add a drive0
+  ' select and add a drive0
   'clk.Base.SelectEventType = 3
 
   '' select and add a node
-  clk.Base.SelectEventType = 1
+  'clk.Base.SelectEventType = 1
   If clk.Base.EventType <> "Node" Then _
     Err.Raise vbObjectError + 2004, "Clock Test: Selection Failure", "Failed to select Node Event Type"
   If clk.Shape.Cells("Prop.EventTrigger.Invisible") <> 0 Then _
     Err.Raise vbObjectError + 2004, "Clock Test: Incorrect Visibilty", "Event Trigger should be visible when set"
   If clk.Shape.Cells("Prop.EventTrigger.Format").Formula <> """;Edge;Posedge;Negedge""" Then _
     Err.Raise vbObjectError + 2004, "Clock Test: Incorrect List", "Expected List: ';Edge;Posedge;Negedge'"
-  clk.Base.SelectEventTrigger = 2
+  'clk.Base.SelectEventTrigger = 2
 
   ' review
   If MsgBox(Title:="Clock Test", Buttons:=vbYesNo, Prompt:="Review Signal?") = vbYes Then Stop

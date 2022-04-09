@@ -1,11 +1,11 @@
 Attribute VB_Name = "vw_types"
 
 Public Enum SignalType
-  Clock  = 0
-  Bit    = 1
-  Bus    = 2
-  Signal = 3
-  Void   = -1
+  Clock  = 1
+  Bit    = 2
+  Bus    = 3
+  Signal = 4
+  Void   = 0
 End Enum
 
 Public Enum EventPosition
@@ -15,19 +15,21 @@ Public Enum EventPosition
 End Enum
 
 Public Enum EventType
-  Edge  = 2 ^ 9  ' max 511 rows but works with integer
-  ' assume posedge
-  Posedge = (2 ^ 9)
-  ' bit 11 = 0: positive/gate0, 1: negative/gate1
-  Negedge = (2 ^ 9) Or (2 ^ 10)
-  ' gate type will not include delay
-  Gate0 = (2 ^ 10)
-  Gate1 = (2 ^ 10) Or (2 ^ 11)
-  GateX = (2 ^ 10) Or (2 ^ 12)
-  GateZ = (2 ^ 10) Or (2 ^ 13)
-  ' node/gap can or with Edge
+  Edge  = 2 ^ 9  ' max 256 rows but works with integer
+  Gate  = 2 ^ 10
   Node  = 2 ^ 14
   Gap   = 2 ^ 15
+  ' modifiers
+  m1 = 2 ^ 11
+  mZ = 2 ^ 12
+  mX = m1 Or mZ
+  ' types II
+  Posedge = Edge Or m1
+  Negedge = Edge
+  Gate0 = Gate
+  Gate1 = Gate Or m1
+  GateZ = Gate Or mZ
+  GateX = Gate Or mX
 End Enum
 
 Public Const ROW_MASK = EventType.Edge - 1

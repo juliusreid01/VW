@@ -16,6 +16,7 @@ Private vsoShp as Shape
 Private wShape as visio_shape_wrapper_c
 
 Private Sub Class_Initialize()
+  Set wShape = new visio_shape_wrapper_c
 End Sub
 
 Private Sub Class_Terminate()
@@ -24,7 +25,6 @@ Private Sub Class_Terminate()
 End Sub
 
 Public Property Set Shape(s as Shape)
-  Set wShape = new visio_shape_wrapper_c
   Set wShape.vsoShape = s
   Set vsoShp = s
 End Property
@@ -37,16 +37,16 @@ Public Property Get Wrapper() as visio_shape_wrapper_c
   Set Wrapper = wShape
 End Property
 
+Public Sub Delete()
+  wShape.Delete
+End Sub
+
 Public Sub Initialize()
   RemoveSections
   AddUserCells
   AddDataCells
   ResetVisioShape
   vsoShp.Text = vsoShp.Name
-End Sub
-
-Public Sub Delete()
-  wShape.Delete
 End Sub
 
 Private Sub RemoveSections()
@@ -99,16 +99,17 @@ End Sub
 ' called by AddDataCells
 Private Sub SetDataLabels()
   With wShape
-    .SetCell Position:="Label", CellName:=S_ACTIVELOW, v:=S_LABEL_ACTIVELOW
-    .SetCell Position:="Label", CellName:=S_SKEW, v:=S_LABEL_SKEW
-    .SetCell Position:="Label", CellName:=S_DUTYCYCLE, v:=S_LABEL_DUTYCYCLE
-    .SetCell Position:="Label", CellName:=S_SIGNALSKEW, v:=S_LABEL_SIGNALSKEW
-    .SetCell Position:="Label", CellName:=S_EVENTTYPE, v:=S_LABEL_EVENTTYPE
-    .SetCell Position:="Label", CellName:=S_EVENTTRIGGER, v:=S_LABEL_EVENTTRIGGER
-    .SetCell Position:="Label", CellName:=S_EVENTPOSITION, v:=S_LABEL_EVENTPOSITION
-    .SetCell Position:="Label", CellName:=S_LABELEDGES, v:=S_LABEL_LABELEDGES
-    .SetCell Position:="Label", CellName:=S_LABELSIZE, v:=S_LABEL_LABELSIZE
-    .SetCell Position:="Label", CellName:=S_LABELFONT, v:=S_LABEL_LABELFONT
+' data cell labels
+    .SetCell Position:="Label", CellName:=S_ACTIVELOW, v:="""Active Low"""
+    .SetCell Position:="Label", CellName:=S_SKEW, v:="""Skew %"""
+    .SetCell Position:="Label", CellName:=S_DUTYCYCLE, v:="""Duty Cycle %"""
+    .SetCell Position:="Label", CellName:=S_SIGNALSKEW, v:="""Signal Skew"""
+    .SetCell Position:="Label", CellName:=S_EVENTTYPE, v:="""Event Type"""
+    .SetCell Position:="Label", CellName:=S_EVENTTRIGGER, v:="""Trigger"""
+    .SetCell Position:="Label", CellName:=S_EVENTPOSITION, v:="""Position"""
+    .SetCell Position:="Label", CellName:=S_LABELEDGES, v:="""Label Edges"""
+    .SetCell Position:="Label", CellName:=S_LABELSIZE, v:="""Label Size"""
+    .SetCell Position:="Label", CellName:=S_LABELFONT, v:="""Label Font Pt"""
   End With
   SetDataTypes
 End Sub

@@ -3,12 +3,14 @@ Attribute VB_Name = "vw_test_base_signal"
 Public Sub Test_BaseSignal()
   Dim shp as Shape
   Dim bSignal as vw_base_signal_c
+  Dim wShape as visio_shape_wrapper_c
 
   Set shp = ActivePage.DrawLine(1, 10, 4, 10)
   shp.OpenSheetWindow
 
   Set bSignal = new vw_base_signal_c
   Set bSignal.Shape = shp
+  Set wShape = bSignal.Wrapper
   bSignal.Initialize SignalType.Signal
 
   vw_test_base_shape.Test_BaseShape bSignal.Base
@@ -16,28 +18,67 @@ Public Sub Test_BaseSignal()
   ' test user cell values
   If bSignal.SignalType <> SignalType.Signal Then _
     Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Type Incorrect", "Read " & CStr(bSignal.SignalType) & " instead of 'Signal'!"
-  If bSignal.ChildOffset <> 0.25 Then _
-    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Child Offset Incorrect", "Read " & CStr(bSignal.ChildOffset) & " instead of '0.25'"
-  If bSignal.ActiveWidth <> 0.25 Then _
-    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Active Width Incorrect", "Read " & CStr(bSignal.ActiveWidth) & " instead of '0.25'"
-  If bSignal.SkewWidth <> 0.025 Then _
-    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Skew Width Incorrect", "Read " & CStr(bSignal.SkewWidth) & " instead of '0.025'"
-  If bSignal.Pulses <> 0 Then _
-    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Pulses Incorrect", "Read " & CStr(bSignal.Pulses) & " instead of '6'"
-  If bSignal.BusWidth <> 1 Then _
-    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Bus Width Incorrect", "Read " & CStr(bSignal.BusWidth) & " instead of '0.25'"
-  If bSignal.HasEdges <> 0 Then _
-    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Edges Incorrect", "Read " & CStr(bSignal.HasEdges) & " instead of '0.25'"
+  If wShape.Result(S_CHILDOFFSET) <> 0.25 Then _
+    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Child Offset Incorrect", "Read " & CStr(wShape.Result(S_CHILDOFFSET)) & " instead of '0.25'"
+  If wShape.Result(S_ACTIVEWIDTH) <> 0.25 Then _
+    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Active Width Incorrect", "Read " & CStr(wShape.Result(S_ACTIVEWIDTH)) & " instead of '0.25'"
+  If wShape.Result(S_SKEWWIDTH) <> 0.025 Then _
+    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Skew Width Incorrect", "Read " & CStr(wShape.Result(S_SKEWWIDTH)) & " instead of '0.025'"
+  If wShape.Result(S_PULSES) <> 0 Then _
+    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Pulses Incorrect", "Read " & CStr(wShape.Result(S_PULSES)) & " instead of '6'"
+  If wShape.Result(S_BUSWIDTH) <> 1 Then _
+    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Bus Width Incorrect", "Read " & CStr(wShape.Result(S_BUSWIDTH)) & " instead of '0.25'"
+  If wShape.Result(S_EDGES) <> 0 Then _
+    Err.Raise vbObjectError + 2003, "Base Signal Test: Signal Edges Incorrect", "Read " & CStr(wShape.Result(S_EDGES)) & " instead of '0.25'"
 
   ' event testing
-  bSignal.AddEdge "Width/2"
-  bSignal.AddEdge "Prop.Delay"
-  bSignal.AddEdge 2.75
-  bSignal.AddEdge 2.5
-  bSignal.AddEdge "Width/2"
+  bSignal.AddEvent "Width/2"
+  bSignal.AddEvent "Prop.Delay"
+  bSignal.AddEvent 2.75
+  bSignal.AddEvent 2.5
+  bSignal.AddEvent "Width/2"
   bSignal.RemoveEvent 2.5
   bSignal.UpdateEvents
-  bSignal.DrawEdges
+  bSignal.DrawEvents
+
+  bSignal.AddEvent .5, vw_types.GateZ
+  bSignal.UpdateEvents
+  bSignal.DrawEvents
+  ' test geometry 4 and 5
+  If shp.Cells("Geometry1.X4").Result("") <> 0.5 Or shp.Cells("Geometry1.X5").Result("") <> 0.5 Then _
+    If MsgBox(Title:="Base Signal Test: Geometry Mismatch", Buttons:=vbYesNo + vbQuestion, _
+              Prompt:="Expected 0.5, Actual X4 = " & shp.Cells("Geometry1.X4").Result("") & vbNewLine & _
+                      "Expected 0.5, Actual X5 = " & shp.Cells("Geometry1.X5").Result("") _
+                      & vbNewLine & "Continue?") = vbNo Then Stop
+  bSignal.RemoveEvent .5, vw_types.GateZ
+  bSignal.UpdateEvents
+  bSignal.DrawEvents
+
+  bSignal.AddEvent .6, vw_types.Gate0
+  bSignal.UpdateEvents
+  bSignal.DrawEvents
+  ' test geometry 4 and 5
+  If shp.Cells("Geometry1.X4").Result("") <> 0.6 Or shp.Cells("Geometry1.X5").Result("") <> 0.6 Then _
+    If MsgBox(Title:="Base Signal Test: Geometry Mismatch", Buttons:=vbYesNo + vbQuestion, _
+              Prompt:="Expected 0.6, Actual X4 = " & shp.Cells("Geometry1.X4").Result("") & vbNewLine & _
+                      "Expected 0.6, Actual X5 = " & shp.Cells("Geometry1.X5").Result("") _
+                      & vbNewLine & "Continue?") = vbNo Then Stop
+  bSignal.RemoveEvent .6, vw_types.Gate0
+  bSignal.UpdateEvents
+  bSignal.DrawEvents
+
+  bSignal.AddEvent 2, vw_types.Gate1
+  bSignal.UpdateEvents
+  bSignal.DrawEvents
+  ' test geometry 4 and 5
+  If shp.Cells("Geometry1.X6").Result("") <> 2 Or shp.Cells("Geometry1.X7").Result("") <> 2 Then _
+    If MsgBox(Title:="Base Signal Test: Geometry Mismatch", Buttons:=vbYesNo + vbQuestion, _
+              Prompt:="Expected 2, Actual X6 = " & shp.Cells("Geometry1.X6").Result("") & vbNewLine & _
+                      "Expected 2, Actual X7 = " & shp.Cells("Geometry1.X7").Result("") _
+                      & vbNewLine & "Continue?") = vbNo Then Stop
+  bSignal.RemoveEvent 2, vw_types.Gate1
+  bSignal.UpdateEvents
+  bSignal.DrawEvents
 
   If shp.RowCount(visSectionScratch) <> 3 Then _
     Err.Raise vbObjectError + 2003, "Base Signal Test: Add Edge", "Add Edge Sub did not correctly add 3 rows to Scratch"

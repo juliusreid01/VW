@@ -55,10 +55,10 @@ End Property
 
 Public Sub Initialize
   bSignal.Initialize vw_types.Clock
-  bSignal.EventType = ";" & GenList(S_LIST_NODE, S_LIST_SPACER, _
-                                    S_LIST_DRIVE_0, S_LIST_DRIVE_1, S_LIST_DRIVE_X, S_LIST_DRIVE_Z, _
-                                    S_LIST_DELETE)
-  bSignal.EventTrigger = ";" & GenList(S_LIST_ABSOLUTE, S_LIST_POSEDGE, S_LIST_NEGEDGE)
+  wShape.SetCellFormat S_EVENTTYPE, ";" & GenList(S_LIST_NODE, S_LIST_SPACER, _
+                                                  S_LIST_DRIVE_0, S_LIST_DRIVE_1, S_LIST_DRIVE_X, S_LIST_DRIVE_Z, _
+                                                  S_LIST_DELETE)
+  wShape.SetCellFormat S_EVENTTRIGGER, ";" & GenList(S_LIST_ABSOLUTE, S_LIST_POSEDGE, S_LIST_NEGEDGE)
   Me.Reset
 End Sub
 
@@ -96,7 +96,7 @@ End Sub
 
 Public Sub CellChanged(vsoCell as IVCell)
   Select Case vsoCell.Name
-    Case wShape.GetCellName(S_PERIOD), wShape.GetCellName(S_DELAY)
+    Case wShape.GetCellName(S_PERIOD), wShape.GetCellName(S_DELAY), "Width"
       Me.DoEdges
     Case wShape.GetCellName(S_DUTYCYCLE), wShape.GetCellName(S_SKEW), wShape.GetCellName(S_DELAY)
       For i = shp.RowCount(visSectionScratch) - 1 to 0 Step -1

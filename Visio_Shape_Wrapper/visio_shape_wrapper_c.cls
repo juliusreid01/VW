@@ -24,6 +24,7 @@ End Property
 
 Public Sub Delete()
   s.Delete
+  Set s = Nothing
 End Sub
 
 Public Property Get Name() As String
@@ -202,15 +203,21 @@ Public Sub SetCell(CellName As String, v As Variant, Optional Position as String
   End If
 End Sub
 
-Public Function Result(CellName as String, Optional Units as String = "") as Variant
+Public Sub SetCellFormat(CellName as String, Format as String)
+  Me.SetCell Position:="Format", CellName:=CellName, v:=Chr(34) & Format & Chr(34)
+End Sub
+
+Public Function Result(CellName as String, Optional Units as String = "", Optional RaiseError as Boolean = True) as Variant
   If s.CellExists(CellName, visExistsLocally) <> False Then
     Result = s.Cells(CellName).Result(Units)
   ElseIf s.CellExists("Prop." & CellName, visExistsLocally) <> False Then
     Result = s.Cells("Prop." & CellName).Result(Units)
   ElseIf s.CellExists("User." & CellName, visExistsLocally) <> False Then
     Result = s.Cells("User." & CellName).Result(Units)
-  Else
+  ElseIf RaiseError Then
     Err.Raise vbObjectError + 512, "visio_shape_wrapper_c", "Cell: " & CellName & " not found!"
+  Else
+    Result = 0
   End If
 End Function
 
