@@ -34,3 +34,31 @@ Public Sub VBA_Reset()
     Application.VBE.ActiveVBProject.VBComponents.Import vbComp
   Next
 End Sub
+
+Public Sub UpdateComponent(vbCompName as String)
+  On Error Resume Next
+  Dim MyComponents as Collection
+  Set MyComponents = New Collection
+  MyComponents.Add "D:\VW\Tests\vw_test.bas"
+  MyComponents.Add "D:\VW\Tests\vw_test_base_shape.bas"
+  MyComponents.Add "D:\VW\Tests\vw_test_base_signal.bas"
+  MyComponents.Add "D:\VW\Tests\vw_test_clock.bas"
+  MyComponents.Add "D:\VW\VBComponents\vw_base_shape_c.cls"
+  MyComponents.Add "D:\VW\VBComponents\vw_base_signal_c.cls"
+  MyComponents.Add "D:\VW\VBComponents\vw_cfg.bas"
+  MyComponents.Add "D:\VW\VBComponents\vw_clock_c.cls"
+  MyComponents.Add "D:\VW\VBComponents\vw_controller.bas"
+  MyComponents.Add "D:\VW\VBComponents\vw_Signal_c.cls"
+  MyComponents.Add "D:\VW\VBComponents\vw_strings.bas"
+  MyComponents.Add "D:\VW\VBComponents\vw_types.bas"
+  MyComponents.Add "D:\VW\Visio_Shape_Wrapper\visio_shape_wrapper_c.cls"
+  For Each vbComp in ThisDocument.VBProject.VBComponents
+    If LCase(vbComp.Name) = vbCompName Then
+      ThisDocument.VBProject.VBComponents.Remove vbComp
+    EndIf
+  Next
+  For Each vbComp in MyComponents
+    If Instr(vbComp, vbCompName) > 0 Then _
+      Application.VBE.ActiveVBProject.VBComponents.Import vbComp
+  Next
+End Sub
