@@ -34,10 +34,9 @@ Public Sub Test_BaseSignal()
   ' event testing
   bSignal.AddEvent "Width/2"
   bSignal.AddEvent "Prop.Delay"
-  bSignal.AddEvent 2.75
   bSignal.AddEvent 2.5
-  bSignal.AddEvent "Prop.Delay", vw_types.Node
   bSignal.RemoveEvent 2.5
+  bSignal.AddEvent 2.75
   bSignal.UpdateEvents
   bSignal.DrawEvents
 
@@ -129,6 +128,13 @@ Public Sub Test_BaseSignal()
               Prompt:="Expected: 2.775, Actual Geometry1.X7 = " & shp.Cells("Geometry1.X7").Result("") & vbNewLine & _
                       "Expected: 0.25, Actual Geometry1.Y7 = " & shp.Cells("Geometry1.Y7").Result("") _
                       & vbNewLine & "Continue?") = vbNo Then Stop
+
+  bSignal.AddEvent "Prop.Delay", vw_types.Node
+  '//TODO. this fails
+  bSignal.AddEvent 2.75, vw_types.Node
+  bSignal.UpdateEvents
+  bSignal.DrawEvents
+
   ' review
   If MsgBox(Title:="Base Signal Test", Buttons:=vbYesNo, Prompt:="Review Signal?") = vbYes Then Stop
   shp.ContainingPage.PageSheet.OpenSheetWindow

@@ -38,6 +38,7 @@ Public Property Get Wrapper() as visio_shape_wrapper_c
 End Property
 
 Public Sub Delete()
+  DeleteChildren vsoShp.ContainingPage
   wShape.Delete
 End Sub
 
@@ -217,12 +218,18 @@ Public Sub ResetGeometry(Optional s as Shape = Nothing)
 End Sub
 
 Public Sub DeleteChildren(Parent as Variant)
+  Dim ParentCell as String
+
+  ParentCell = wShape.GetCellName(S_PARENT)
+
   For Each s in Parent.Shapes
     If s.Shapes.Count > 0 Then
       DeleteChildren s
-    ElseIf s.CellExists("User." & S_TYPE, visExistsLocally) = True And s.CellExists("User." & S_PARENT) Then
-      If (s.Cells("User." & S_TYPE).Result("") And sType) <> 0 And s.Cells("User." & S_PARENT).ResultStr("") = vsoShp.Name Then _
+    ElseIf s.CellExists(ParentCell, visExistsLocally) <> False Then
+      If s.Cells(ParentCell).ResultStr("") = vsoShp.Name Then
         s.Delete
+        DeleteChildren Parent
+        Exit For
       End If
     End If
   Next

@@ -22,6 +22,10 @@ Public Property Set vsoShape(vsoShp As Shape)
   Set s = vsoShp
 End Property
 
+Public Property Get vsoShape() As Shape
+  Set vsoShape = vsoShp
+End Property
+
 Public Sub Delete()
   s.Delete
   Set s = Nothing
