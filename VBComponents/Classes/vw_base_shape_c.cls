@@ -220,7 +220,7 @@ End Sub
 Public Sub DeleteChildren(Parent as Variant)
   Dim ParentCell as String
 
-  ParentCell = wShape.GetCellName(S_PARENT)
+  ParentCell = wShape.GetCellName(S_PARENT, False)
 
   For Each s in Parent.Shapes
     If s.Shapes.Count > 0 Then
