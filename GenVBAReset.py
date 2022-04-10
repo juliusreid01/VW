@@ -15,6 +15,8 @@ def GetComps(path):
                 files.append(path + "\\" + f)
         elif isdir(f):
             GetComps(path + "\\" + f)
+        elif isdir(path + "\\" + f):
+            GetComps(path + "\\" + f)
 
 GetComps("D:\VW")
 
