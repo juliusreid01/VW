@@ -241,7 +241,9 @@ Public Sub DrawEvents()
   For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
     eType = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0) And Not(ROW_MASK)
 
-    If ((eType And Edge) = Edge) Or ((eType And Gate) = Gate) Then DrawTransition CInt(i), GeometryRow
+    If ((eType And Edge) = Edge) Or ((eType And Gate) = Gate) Then
+      DrawTransition CInt(i), GeometryRow
+    End If
     If (eType And Node) = Node Then DrawNode CInt(i)
     'If (eType And Gap) = Gap Then
   Next
@@ -291,6 +293,15 @@ Private Sub DrawNode(ScratchRow as Integer)
   Set Node = new vw_child_c
   Node.SetParent bShape, vw_types.Node, ScratchRow
   Node.Draw
+  Set Node = Nothing
+End Sub
+
+Private Sub DrawLabel(ScratchRow as Integer)
+  Dim Label as vw_child_c
+  Set Label = new vw_child_c
+  Label.SetParent bShape, vw_types.Edge, ScratchRow
+  Label.Draw
+  Set Label = Nothing
 End Sub
 
 Private Sub Setup_Node()

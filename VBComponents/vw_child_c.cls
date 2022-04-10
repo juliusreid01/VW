@@ -17,7 +17,10 @@ Private Row as Integer
 Private pType as Integer
 Private MyShape as visio_shape_wrapper_c
 Private NodeID as Integer
+Private LabelID as Integer
 Private iExist as Boolean
+Private TypeCell as String
+Private ParentCell as String
 
 Public Sub Class_Initialize()
   iExist = False
@@ -38,6 +41,10 @@ Public Sub SetParent(s as vw_base_shape_c, ChildType as Integer, ScratchRow as I
   pType = ChildType
   '//TODO. the initial node value should be configurable
   NodeID = 97
+  '//TODO. the initial label value should be configurable
+  LabelID = 1
+  TypeCell = wShape.GetCellName(S_TYPE, False)
+  ParentCell = wShape.GetCellName(S_PARENT, False)
 End Sub
 
 Private Property Get NodeXF() as String
@@ -63,26 +70,41 @@ Private Property Get NodeY() as Double
   NodeY = wShape.Result(S_TEST)
 End Property
 
+Private Property Get LabelXF() as String
+  LabelXF = NodeXF
+End Property
+
+Private Property Get LabelX() as Double
+  wShape.SetCell S_TEST, LabelXF
+  LabelX = wShape.Result(S_TEST)
+End Property
+
+Private Property Get LabelYF() as String
+  LabelYF = vsoShp.Name & "!PinY + " & vsoShp.Name & "!Height + Height"
+End Property
+
+Private Property Get LabelY() as Double
+  wShape.SetCell S_TEST, LabelYF
+  LabelY = wShape.Result(S_TEST)
+End Property
+
+
 Private Property Get MyX() as Double
   Select Case pType
    Case vw_types.Node: MyX = NodeX
+   Case vw_types.Edge: MyX = LabelX
   End Select
 End Property
 
 Private Property Get MyY() as Double
   Select Case pType
    Case vw_types.Node: MyY = NodeY
+   Case vw_types.Edge: MyY = LabelY
   End Select
 End Property
 
 Private Function Exists(Container as Variant) as Boolean
-  Dim TypeCell as String
-  Dim ParentCell as String
-
   If iExist = True Then Exit Function
-
-  TypeCell = wShape.GetCellName(S_TYPE, False)
-  ParentCell = wShape.GetCellName(S_PARENT, False)
 
   For Each s in Container.Shapes
     If s.Shapes.Count > 0 Then
@@ -100,12 +122,7 @@ Private Function Exists(Container as Variant) as Boolean
   Exists = iExist
 End Function
 
-Private Sub UpdateNodeID(Optional Container as Variant = Nothing)
-  Dim TypeCell as String
-
-  TypeCell = wShape.GetCellName(S_TYPE)
-
-  If Container is Nothing Then Set Container = vsoShp.ContainingPage
+Private Sub UpdateNodeID(Container as Variant)
   For Each s in Container.Shapes
     If s.Shapes.Count > 0 Then
       UpdateNodeID s
@@ -115,11 +132,22 @@ Private Sub UpdateNodeID(Optional Container as Variant = Nothing)
   Next
 End Sub
 
+Private Sub UpdateLabelID(Container as Variant)
+  For Each s in Container.Shapes
+    If s.Shapes.Count > 0 Then
+      UpdateLabelID s
+    ElseIf s.CellExists(TypeCell, visExistsLocally) <> False And IsNumeric(s.Text) Then
+      If s.Cells(TypeCell) = vw_types.Edge Then LabelID = CInt(s.Text) + 1
+    End If
+  Next
+End Sub
+
 Public Sub Draw()
   If Exists(vsoShp.ContainingPage) Then Exit Sub
   Set MyShape = new visio_shape_wrapper_c
   Select Case pType
    Case vw_types.Node: DrawNode
+   Case vw_types.Edge: DrawLabel
   End Select
   ' reselect the shape
   For Each w in Application.Windows
@@ -129,19 +157,11 @@ Public Sub Draw()
   Next
 End Sub
 
-Private Sub DrawNode()
-  Dim shp as Shape
+Private Sub DrawCommon(ByRef shp as Shape)
   Set shp = vsoShp.ContainingPage.DrawRectangle(wShape.PinX, wShape.PinY, wShape.PinX, wShape.PinY)
 
   Set MyShape.vsoShape = shp
-  '//TODO. this should be coming from vw_cfg as NODE_HEIGHT_MULTIPLIER
-  MyShape.Height = "Guard(" & vsoShp.Name & ("!Height") & "*0.5)"
   MyShape.Width = "Guard(Height)"
-  MyShape.PinX = "Guard(" & NodeXF & ")"
-  MyShape.PinY = "Guard(" & NodeYF & ")"
-  shp.Cells("Rounding").Formula = "Width*0.5"
-  '//TODO. should nodes have their own setting
-  shp.Cells("Char.Size").Formula = "Guard(" & vsoShp.Name & "!" & wShape.GetCellName(S_LABELFONT) & ")"
   shp.Cells("LeftMargin").Formula = "0"
   shp.Cells("RightMargin").Formula = "0"
   shp.Cells("BottomMargin").Formula = "0"
@@ -152,9 +172,36 @@ Private Sub DrawNode()
   MyShape.SetCell CellName:="Parent", v:=Chr(34) & vsoShp.Name & Chr(34)
   MyShape.AddUserCell "ScratchID"
   MyShape.SetCell CellName:="ScratchID", v:=Row
+  shp.BringToFront
+End Sub
+
+Private Sub DrawNode()
+  Dim shp as Shape
+  DrawCommon shp
+  '//TODO. this should be coming from vw_cfg as NODE_HEIGHT_MULTIPLIER
+  MyShape.Height = "Guard(" & vsoShp.Name & ("!Height") & "*0.5)"
+  MyShape.PinX = "Guard(" & NodeXF & ")"
+  MyShape.PinY = "Guard(" & NodeYF & ")"
+  shp.Cells("Rounding").Formula = "Width*0.5"
+  '//TODO. should nodes have their own setting
+  shp.Cells("Char.Size").Formula = "Guard(" & vsoShp.Name & "!" & wShape.GetCellName(S_LABELFONT) & ")"
   ' update the row data
   vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).Formula = _
     vsoShp.CellsSRC(visSectionScratch, Row, VW_COL_EVENT_TYPE).ResultInt("", 0) Or vw_types.Node
   UpdateNodeID vsoShp.ContainingPage
   shp.Text = Chr(NodeID)
+End Sub
+
+Private Sub DrawLabel()
+  Dim shp as Shape
+  DrawCommon shp
+  MyShape.Height = "Guard(" & vsoShp.Name & "!" & wShape.GetCellName(S_LABELSIZE) & ")"
+  MyShape.Width = "Guard(Height)"
+  MyShape.PinX = "Guard(" & LabelXF & ")"
+  MyShape.PinY = "Guard(" & LabelYF & ")"
+  '//TODO this should be configurable
+  shp.Cells("Rounding").Formula = "Width*0.5"
+  shp.Cells("Char.Size").Formula = "Guard(" & vsoShp.Name & "!" & wShape.GetCellName(S_LABELFONT) & ")"
+  UpdateLabelID vsoShp.ContainingPage
+  shp.Text = CStr(LabelID)
 End Sub
