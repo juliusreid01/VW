@@ -1,10 +1,10 @@
 Attribute VB_Name = "vw_types"
 
 Public Enum SignalType
-  Clock  = 1
-  Bit    = 2
-  Bus    = 3
-  Signal = 4
+  Clock  = 4
+  Bit    = 1
+  Bus    = 2
+  Signal = 3
   Void   = 0
 End Enum
 

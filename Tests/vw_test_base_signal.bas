@@ -36,7 +36,7 @@ Public Sub Test_BaseSignal()
   bSignal.AddEvent "Prop.Delay"
   bSignal.AddEvent 2.75
   bSignal.AddEvent 2.5
-  bSignal.AddEvent "Width/2"
+  bSignal.AddEvent "Prop.Delay", vw_types.Node
   bSignal.RemoveEvent 2.5
   bSignal.UpdateEvents
   bSignal.DrawEvents

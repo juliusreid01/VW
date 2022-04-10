@@ -66,6 +66,7 @@ Private Sub AddUserCells()
     .AddUserCell S_PULSES
     .AddUserCell S_BUSWIDTH
     .AddUserCell S_EDGES
+    .AddUserCell S_PARENT
     .AddUserCell S_TEST, """Spare cell to test formula/value combinations"""
   End With
 End Sub
@@ -213,4 +214,16 @@ Public Sub ResetGeometry(Optional s as Shape = Nothing)
   vsoShp.RowType(visSectionFirstComponent, visRowComponent + 1) = visTagMoveTo
   vsoShp.RowType(visSectionFirstComponent, visRowComponent + 2) = visTagLineTo
   vsoShp.Cells("Height").FormulaForce = Height
+End Sub
+
+Public Sub DeleteChildren(Parent as Variant)
+  For Each s in Parent.Shapes
+    If s.Shapes.Count > 0 Then
+      DeleteChildren s
+    ElseIf s.CellExists("User." & S_TYPE, visExistsLocally) = True And s.CellExists("User." & S_PARENT) Then
+      If (s.Cells("User." & S_TYPE).Result("") And sType) <> 0 And s.Cells("User." & S_PARENT).ResultStr("") = vsoShp.Name Then _
+        s.Delete
+      End If
+    End If
+  Next
 End Sub

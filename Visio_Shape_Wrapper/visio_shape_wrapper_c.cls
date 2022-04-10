@@ -27,6 +27,10 @@ Public Sub Delete()
   Set s = Nothing
 End Sub
 
+Public Property Let Text(t as String)
+  s.Text = t
+End Property
+
 Public Property Get Name() As String
   Name = s.Name
 End Property
@@ -164,11 +168,6 @@ Public Property Let EndY(v As Variant)
   End If
 End Property
 
-' get the cell name with the parent shape name
-Public Function GetCellRefName(CellName As String) As String
-  GetCellRefName = s.Name & "!" & CellName
-End Function
-
 Public Sub SetPoint(Section As Integer, Row As Integer, X As Variant, Y As Variant)
   s.CellsSRC(Section, Row, visX).FormulaForce = X
   s.CellsSRC(Section, Row, visY).FormulaForce = Y
@@ -233,12 +232,14 @@ Public Function ResultStr(CellName as String) as String
   End If
 End Function
 
-Public Function GetCellName(CellName as String) as String
+Public Function GetCellName(CellName as String, Optional RaiseError as Boolean = True) as String
   If s.CellExists("Prop." & CellName, visExistsLocally) <> False Then
     GetCellName = "Prop." & CellName
   Elseif s.CellExists("User." & CellName, visExistsLocally) <> False Then
     GetCellName = "User." & CellName
-  Else
+  ElseIf RaiseError Then
     Err.Raise vbObjectError + 512, "visio_shape_wrapper_c", "Cell: " & CellName & " not found!"
+  Else
+    GetCellName = "Foo." & CellName
   End If
 End Function

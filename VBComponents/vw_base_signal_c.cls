@@ -138,10 +138,9 @@ Public Sub AddEvent(xRelative as Variant, Optional eType as EventType = vw_types
   ' otherwise select where to insert or modify an existing row
   Else
     wShape.SetCell S_TEST, xRelative
-    For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
+    For i = vsoShp.RowCount(visSectionScratch) - 1 to 0 Step -1
       If wShape.Result(S_TEST) < vsoShp.CellsSRC(visSectionScratch, i, visScratchX).Result("") Then
         Row = i
-        Exit For
       ElseIf wShape.Result(S_TEST) = vsoShp.CellsSRC(visSectionScratch, i, visScratchX).Result("") Then
         Row = i
         Exit For
@@ -194,24 +193,23 @@ Public Sub UpdateEvents()
   PreviousEvent = -1
   For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
     eType = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0)
-    Select Case eType And Not(vw_types.ROW_MASK)
-     Case vw_types.Edge, vw_types.EventType.Posedge
+    '//TODO. comes up as edge and node
+    If (eType And vw_types.Edge) <> 0 Then
       nEdges = nEdges + 1
-      Select Case PreviousEvent
-       Case Is < 0, vw_types.Gate0
+      If (PreviousEvent < 0) Or ((PreviousEvent And vw_types.Gate0) <> 0) Then
         y = "Height*1"
-       Case vw_types.GateX, vw_types.GateZ, vw_types.Gate1
+      ElseIf (PreviousEvent And vw_types.Gate) <> 0 Then
         y = "Height*0"
-       Case vw_types.Edge
+      ElseIf (PreviousEvent And vw_types.Edge) <> 0 Then
         y = "Height-Scratch.Y" & CStr(i)
-      End Select
-     Case vw_types.Gate1
+      End If
+    ElseIf (eType And vw_types.Gate1) <> 0 Then
       y = "Height*1"
-     Case vw_types.Gate0, vw_types.GateX
-      y = "Height*0"
-     Case vw_types.GateZ
+    ElseIf (eType And vw_types.GateZ) <> 0 Then
       y = "Height*0.5"
-    End Select
+    Else 'vw_types.Gate0, vw_types.GateX
+      y = "Height*0"
+    End If
     vsoShp.CellsSRC(visSectionScratch, i, visScratchY).Formula = y
     PreviousEvent = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0) And Not(vw_types.ROW_MASK)
   Next i
@@ -243,11 +241,9 @@ Public Sub DrawEvents()
   For i = 0 to vsoShp.RowCount(visSectionScratch) - 1
     eType = vsoShp.CellsSRC(visSectionScratch, i, VW_COL_EVENT_TYPE).ResultInt("", 0) And Not(ROW_MASK)
 
-    If ((eType And Edge) = Edge) Or ((eType And Gate) = Gate) Then
-      DrawTransition CInt(i), GeometryRow
-    ElseIf (eType And Node) = Node Then
-    ElseIf (eType And Gap) = Gap Then
-    End If
+    If ((eType And Edge) = Edge) Or ((eType And Gate) = Gate) Then DrawTransition CInt(i), GeometryRow
+    If (eType And Node) = Node Then DrawNode CInt(i)
+    'If (eType And Gap) = Gap Then
   Next
 
   ' remove additional geometry rows due to width changing
@@ -257,6 +253,8 @@ Public Sub DrawEvents()
 
   ' correct last row
   wShape.SetPoint visSectionFirstComponent, GeometryRow, "Width", vsoShp.Cells("Geometry1.Y" & CStr(GeometryRow-1)).Formula
+
+  Set Collection = Nothing
 End Sub
 
 Private Sub DrawTransition(i as Integer, ByRef GeometryRow as Integer)
@@ -289,26 +287,10 @@ Private Sub DrawTransition(i as Integer, ByRef GeometryRow as Integer)
 End Sub
 
 Private Sub DrawNode(ScratchRow as Integer)
-  Dim Node as visio_shape_wrapper_c
-  Set Node = new visio_shape_wrapper_c
-  Set Node.vsoShp = vsoShp.ContainingPage.DrawRectangle(wShape.PinX, wShape.PinY, wShape.PinX, wShape.PinY)
-  '//TODO. this should be coming from vw_cfg as NODE_HEIGHT_MULTIPLIER
-  Node.Height = "Guard(" & vsoShp.Name & ("!Height") & "*0.5)"
-  Node.Width = "Guard(Height)"
-  Node.PinX = "Guard(" & vsoShp.Name & "!PinX + ((" _
-              (vsoShp.Name & "!Scratch.X" & CStr(ScratchRow + 1)) & "-" & (vsoShp.Name & "!Scratch.X" & CStr(ScratchRow)) & _
-              ")*0.5))"
-  Node.PinY = wShape.GetCellRefName
-  Node.vsoShp.Cells("Rounding").Formula = "Width*0.5"
-  '//TODO. should nodes have their own setting
-  Node.vsoShp.Cells("Char.Size").Formula = "Guard(" & vsoShp.Name & "!" & wShape.GetCellName(S_LABELFONT) & ")"
-  '//TODO. a page has to update this text
-  Node.vsoShp.Text = "a"
-  Node.AddUserCell "Parent"
-  Node.SetCell CellName:="Parent", v:=vsoShp.Name
-  ' update the row data
-  vsoShp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Formula = _
-    vsoShp.CellsSRC(visSectionScratch, ScratchRow, VW_COL_EVENT_TYPE).Result("") Or Node
+  Dim Node as vw_child_c
+  Set Node = new vw_child_c
+  Node.SetParent bShape, vw_types.Node, ScratchRow
+  Node.Draw
 End Sub
 
 Private Sub Setup_Node()
