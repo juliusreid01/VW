@@ -1,5 +1,8 @@
 Attribute VB_Name = "vw_strings"
 
+' name of the cell that the page sheet must have to use for configurations
+Public Const S_PAGE_CFG as String = "vw_cfg"
+
 ' user cell strings
 Public Const S_TYPE as String = "Type"
 Public Const S_CHILDOFFSET as String = "ChildOffset"
@@ -26,9 +29,12 @@ Public Const S_EVENTTRIGGER as String = "EventTrigger"
 Public Const S_EVENTPOSITION as String = "EventPosition"
 Public Const S_LABELEDGES as String = "LabelEdges"
 Public Const S_LABELSIZE as String = "LabelSize"
-Public Const S_LABELFONT as String = "LabelFont"
+Public Const S_LABELFONT as String = "LabelFontSize"
+Public Const S_NODEFONT as String = "NodeFontSize"
+Public Const S_NODESIZEMULT as String = "NodeSizeMultiplier"
 
 ' label shape strings
+Public Const S_LBL_SHAPE as String = "LabelShape"
 Public Const S_LBL_RECTANGLE as String = "Rectangle"
 Public Const S_LBL_SQUARE as String = "Square"
 Public Const S_LBL_DIAMOND as String = "Diamond"
